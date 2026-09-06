@@ -86,7 +86,6 @@ The predictive model for **Heating Oil** achieved strong statistical performance
 | **Bias (MSD)** | **-0.118** | Near-zero bias (balanced prediction errors) |
 
 ![Evaluation Metric](assets/evaluation_metric.png)
-
 > **Conclusion:** The model demonstrates robust performance suitable for operational forecasting with minimal systematic error.
 
 ## 📁 Repository Structure
