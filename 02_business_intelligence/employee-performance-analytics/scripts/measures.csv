@@ -1,0 +1,629 @@
+Table_Name,MEASURE_NAME,EXPRESSION
+"Measure","Total Employee Join","CALCULATE(
+    COUNTROWS('employees'),
+    USERELATIONSHIP('Calendar'[Date], 'employees'[Hire_Date])
+)"
+"Measure","Total Employee Exit","CALCULATE(
+    COUNTROWS('employees'),
+    NOT ISBLANK('employees'[Exit_Date]),
+    'employees'[Exit_Date] >= MIN('Calendar'[Date]),
+    'employees'[Exit_Date] <= MAX('Calendar'[Date])
+)"
+"Measure","Total All Time Join","CALCULATE(
+    DISTINCTCOUNT('employees'[Employee_Id]),
+    'employees'[Hire_Date] <= MAX('Calendar'[Date]),
+    REMOVEFILTERS('Calendar')
+)"
+"Measure","Total Store","CALCULATE(
+    DISTINCTCOUNT('stores'[Opening_Date]),
+    'stores'[Opening_Date] <= MAX('Calendar'[Date]),
+    REMOVEFILTERS('Calendar')
+)"
+"Measure","Total Active Employee","[Total All Time Join]-[Total Employee Exit]"
+"Measure","Total Store PY","CALCULATE(
+    [Total Store],
+    SAMEPERIODLASTYEAR('Calendar'[Date])
+)"
+"Measure","LABEL Total Store PY","VAR _yoy = [Total Store PY]
+RETURN SWITCH (
+    TRUE(),
+    ISBLANK ( _yoy ),      ""--"",
+    _yoy > 0,   ""PY "" & FORMAT ( _yoy, ""0"" )
+)"
+"Measure","YoY Store Growth","VAR TotalStore = [Total Store]
+VAR Past = [Total Store PY]
+RETURN
+TotalStore-Past"
+"Measure","YoY Store Growth %","DIVIDE([YoY Store Growth],[Total Store PY])"
+"Measure","LABEL Store Growth YoY","VAR _yoy = [YoY Store Growth %]
+RETURN SWITCH (
+    TRUE(),
+    ISBLANK ( _yoy ),      ""--"",
+    _yoy > 0,   ""▲ "" & FORMAT ( _yoy, ""0.00%"" ) & "" vs PY"",
+    _yoy <= 0,  ""▼ "" & FORMAT ( _yoy, ""0.00%"" ) & "" vs PY""
+)"
+"Measure","Salary per Employee","DIVIDE([Total Base Salary],[Total Active Employee])"
+"Measure","Total Base Salary","SUM('employees'[Base_Salary_Annual])"
+"Measure","Total Base Annual Salary PY","CALCULATE(
+    [Total Base Salary],
+    SAMEPERIODLASTYEAR('Calendar'[Date])
+)"
+"Measure","LABEL Total Annual Base Salary PY","VAR _yoy = [Total Base Annual Salary PY]/1000000
+RETURN SWITCH (
+    TRUE(),
+    ISBLANK ( _yoy ),      ""--"",
+    _yoy > 0,   ""PY "" & FORMAT ( _yoy, ""$#,0.00M"" )
+)"
+"Measure","YoY Total Annual Base Salary Growth","VAR TotalStore = [Total Base Salary]
+VAR Past = [Total Base Annual Salary PY]
+RETURN
+TotalStore-Past"
+"Measure","YoY Total Base Annual Salary Growth %","DIVIDE([YoY Total Annual Base Salary Growth],[Total Base Annual Salary PY])"
+"Measure","LABEL Total Annual Base Salary YoY","VAR _yoy = [YoY Total Base Annual Salary Growth %]
+RETURN SWITCH (
+    TRUE(),
+    ISBLANK ( _yoy ),      ""--"",
+    _yoy > 0,   ""▲ "" & FORMAT ( _yoy, ""0.00%"" ) & "" vs PY"",
+    _yoy <= 0,  ""▼ "" & FORMAT ( _yoy, ""0.00%"" ) & "" vs PY""
+)"
+"Measure","YoY Salary per Employee Growth","VAR TotalStore = [Salary per Employee]
+VAR Past = [Salary per Employee PY]
+RETURN
+TotalStore-Past"
+"Measure","LABEL Salary per Employee PY","VAR _yoy = [Salary per Employee PY]/1000
+RETURN SWITCH (
+    TRUE(),
+    ISBLANK ( _yoy ),      ""--"",
+    _yoy > 0,   ""PY "" & FORMAT ( _yoy, ""$#,0.00K"" )
+)"
+"Measure","Avg Performance Rating","AVERAGE(monthly_performance[Performance_Rating])"
+"Measure","Average Potential Score","AVERAGE('monthly_performance'[Potention_Score])"
+"Measure","Salary per Employee PY","CALCULATE(
+    [Salary per Employee],
+    SAMEPERIODLASTYEAR('Calendar'[Date])
+)"
+"Measure","LABEL Salary per Employee Growth % YOY","VAR _yoy = [YoY Annual Salary per Employee Growth %]
+RETURN
+    SWITCH(
+        TRUE(),
+        ISBLANK(_yoy), ""--"",
+        _yoy > 0, UNICHAR(9650) & "" "" & FORMAT(_yoy, ""[Green]0.00%"") & "" vs PY"",
+        _yoy <= 0, UNICHAR(9660) & "" "" & FORMAT(_yoy, ""[Red]0.00%"") & "" vs PY""
+    )"
+"Measure","YoY Total Annual Salary per Employee Growth %","DIVIDE([YoY Salary per Employee Growth],[Salary per Employee PY])"
+"Measure","YoY Annual Salary per Employee Growth %","DIVIDE([YoY Salary per Employee Growth],[Salary per Employee PY])"
+"Measure","Avg Performance Rating PY","CALCULATE(
+    [Avg Performance Rating],
+    SAMEPERIODLASTYEAR('Calendar'[Date])
+)"
+"Measure","YoY Avg Performance Rating Growth","VAR TotalStore = [Avg Performance Rating]
+VAR Past = [Avg Performance Rating PY]
+RETURN
+TotalStore-Past"
+"Measure","YoY Avg Performance Rating Growth %","DIVIDE([YoY Avg Performance Rating Growth],[Avg Performance Rating PY])"
+"Measure","LABEL Avg Performance Rating Growth % YOY","VAR _yoy = [YoY Avg Performance Rating Growth %]
+RETURN
+    SWITCH(
+        TRUE(),
+        ISBLANK(_yoy), ""--"",
+        _yoy > 0, UNICHAR(9650) & "" "" & FORMAT(_yoy, ""[Green]0.00%"") & "" vs PY"",
+        _yoy <= 0, UNICHAR(9660) & "" "" & FORMAT(_yoy, ""[Red]0.00%"") & "" vs PY""
+    )"
+"Measure","LABEL Avg Performance Rating PY","VAR _yoy = [Avg Performance Rating PY]
+RETURN
+    IF(
+        ISBLANK(_yoy),
+        ""--"",
+        ""PY "" & FORMAT(_yoy, ""#,0.00"")
+    )"
+"Measure","Avg Potential Score","AVERAGE('monthly_performance'[Potention_Score])"
+"Measure","Avg Potential Score PY","CALCULATE(
+    [Avg Potential Score],
+    SAMEPERIODLASTYEAR('Calendar'[Date])
+)"
+"Measure","YoY Avg Potential Score Growth","VAR TotalStore = [Avg Potential Score]
+VAR Past = [Avg Potential Score PY]
+RETURN
+TotalStore-Past"
+"Measure","YoY Avg Potential Score Growth %","DIVIDE([YoY Avg Potential Score Growth],[Avg Potential Score PY])"
+"Measure","LABEL Avg Potential Score PY","VAR _yoy = [Avg Potential Score PY]
+RETURN
+    IF(
+        ISBLANK(_yoy),
+        ""--"",
+        ""PY "" & FORMAT(_yoy, ""#,0.00"")
+    )"
+"Measure","LABEL Avg Potential Score Growth % YOY","VAR _yoy = [YoY Avg Potential Score Growth %]
+RETURN
+    SWITCH(
+        TRUE(),
+        ISBLANK(_yoy), ""--"",
+        _yoy > 0, UNICHAR(9650) & "" "" & FORMAT(_yoy, ""[Green]0.00%"") & "" vs PY"",
+        _yoy <= 0, UNICHAR(9660) & "" "" & FORMAT(_yoy, ""[Red]0.00%"") & "" vs PY""
+    )"
+"Measure","Total Sales Actual","CALCULATE(
+    SUM(business_outcomes[Sales_Actual]),
+    FILTER(
+        ALL(business_outcomes),
+        business_outcomes[Year_Month] <= MAX('Calendar'[Date]) &&
+        business_outcomes[Year_Month] >= MIN('Calendar'[Date])
+    )
+)"
+"Measure","Total Sales Target","CALCULATE(
+    SUM(business_outcomes[Sales_Target]),
+    FILTER(
+        ALL(business_outcomes),
+        business_outcomes[Year_Month] <= MAX('Calendar'[Date]) &&
+        business_outcomes[Year_Month] >= MIN('Calendar'[Date])
+    )
+)"
+"Measure","KPI Label Most Active Store (Dynamic)","VAR SelectedDate =
+    MAX( 'Calendar'[Date] )
+
+VAR MostActiveStoreLogic =
+    CALCULATE(
+        VAR TopStoreId =
+            MAXX(
+                TOPN(
+                    1,
+                    SUMMARIZE(
+                        employees,
+                        employees[Store_Id],
+                        ""Active Employees"", [Total Active Employee]
+                    ),
+                    [Active Employees], DESC
+                ),
+                employees[Store_Id]
+            )
+        VAR TopStoreName =
+            LOOKUPVALUE(
+                stores[Store_Name],
+                stores[Store_Id],
+                TopStoreId
+            )
+        VAR ActiveEmployeesCount =
+            CALCULATE(
+                [Total Active Employee],
+                employees[Store_Id] = TopStoreId
+            )
+        RETURN
+            ""Most : "" & TopStoreName & "" : "" & ActiveEmployeesCount,
+        FILTER(
+            ALL(employees),
+            employees[Hire_Date] <= SelectedDate
+        )
+    )
+
+RETURN
+    MostActiveStoreLogic"
+"Measure","Total Active Employee di Most Active Store","VAR TopStoreId =
+    MAXX(
+        TOPN(
+            1,
+            SUMMARIZE(
+                employees,
+                employees[Store_Id],
+                ""Active Employees"", [Total Active Employee]
+            ),
+            [Active Employees], DESC
+        ),
+        employees[Store_Id]
+    )
+RETURN
+    CALCULATE(
+        [Total Active Employee],
+        employees[Store_Id] = TopStoreId
+    )"
+"Measure","KPI Label Least Active Store (Dynamic)","VAR SelectedDate =
+    MAX( 'Calendar'[Date] )
+
+VAR LeastActiveStoreLogic =
+    CALCULATE(
+        VAR BottomStoreId =
+            MAXX(
+                TOPN(
+                    1,
+                    SUMMARIZE(
+                        employees,
+                        employees[Store_Id],
+                        ""Active Employees"", [Total Active Employee]
+                    ),
+                    [Active Employees], ASC
+                ),
+                employees[Store_Id]
+            )
+        VAR BottomStoreName =
+            LOOKUPVALUE(
+                stores[Store_Name],
+                stores[Store_Id],
+                BottomStoreId
+            )
+        VAR ActiveEmployeesCount =
+            CALCULATE(
+                [Total Active Employee],
+                employees[Store_Id] = BottomStoreId
+            )
+        RETURN
+                ""Least : "" & BottomStoreName & "" : "" & ActiveEmployeesCount,
+        FILTER(
+            ALL(employees),
+            employees[Hire_Date] <= SelectedDate
+        )
+    )
+
+RETURN
+    LeastActiveStoreLogic"
+"Measure","KPI Label Most Stores City (Dynamic)","VAR SelectedDate =
+    MAX( 'Calendar'[Date])
+
+VAR MostStoresCity =
+    MAXX(
+        TOPN(
+            1,
+            SUMMARIZE(
+                FILTER(
+                    stores,
+                    stores[Opening_Date] <= SelectedDate
+                ),
+                stores[City],
+                ""Total Stores"", COUNTROWS(stores)
+            ),
+            [Total Stores], DESC
+        ),
+        stores[City]
+    )
+
+VAR TotalStoresInCity =
+    MAXX(
+        TOPN(
+            1,
+            SUMMARIZE(
+                FILTER(
+                    stores,
+                    stores[Opening_Date] <= SelectedDate
+                ),
+                stores[City],
+                ""Total Stores"", COUNTROWS(stores)
+            ),
+            [Total Stores], DESC
+        ),
+        [Total Stores]
+    )
+
+RETURN
+    ""Most : "" & MostStoresCity & "" : "" & TotalStoresInCity"
+"Measure","KPI Label Least Stores City (Dynamic)","VAR SelectedDate =
+    MAX( 'Calendar'[Date] )
+
+VAR LeastStoresCity =
+    MAXX(
+        TOPN(
+            1,
+            SUMMARIZE(
+                FILTER(
+                    stores,
+                    stores[Opening_Date] <= SelectedDate
+                ),
+                stores[City],
+                ""Total Stores"", COUNTROWS(stores)
+            ),
+            [Total Stores], ASC
+        ),
+        stores[City]
+    )
+
+VAR TotalStoresInCity =
+    MAXX(
+        TOPN(
+            1,
+            SUMMARIZE(
+                FILTER(
+                    stores,
+                    stores[Opening_Date] <= SelectedDate
+                ),
+                stores[City],
+                ""Total Stores"", COUNTROWS(stores)
+            ),
+            [Total Stores], ASC
+        ),
+        [Total Stores]
+    )
+
+RETURN
+    ""Least : "" & LeastStoresCity & "" : "" & TotalStoresInCity"
+"Measure","KPI Label Most Base Annual Salary","VAR TopStoreId =
+    MAXX(
+        TOPN(
+            1,
+            SUMMARIZE(
+                employees,
+                employees[Store_Id],
+                ""Total Base Salary"", SUM(employees[Base_Salary_Annual])
+            ),
+            [Total Base Salary], DESC
+        ),
+        employees[Store_Id]
+    )
+VAR TopStoreName =
+    LOOKUPVALUE(
+        stores[Store_Name],
+        stores[Store_Id],
+        TopStoreId
+    )
+VAR TotalSalaryInStore =
+    MAXX(
+        TOPN(
+            1,
+            SUMMARIZE(
+                employees,
+                employees[Store_Id],
+                ""Total Base Salary"", SUM(employees[Base_Salary_Annual])
+            ),
+            [Total Base Salary], DESC
+        ),
+        [Total Base Salary]
+    )
+RETURN
+    ""Most: "" & TopStoreName & "" : "" & FORMAT(TotalSalaryInStore, ""$#,##0"")"
+"Measure","KPI Label Least Base Annual Salary","VAR BottomStoreId =
+    MAXX(
+        TOPN(
+            1,
+            SUMMARIZE(
+                employees,
+                employees[Store_Id],
+                ""Total Base Salary"", SUM(employees[Base_Salary_Annual])
+            ),
+            [Total Base Salary], ASC
+        ),
+        employees[Store_Id]
+    )
+VAR BottomStoreName =
+    LOOKUPVALUE(
+        stores[Store_Name],
+        stores[Store_Id],
+        BottomStoreId
+    )
+VAR TotalSalaryInStore =
+    MAXX(
+        TOPN(
+            1,
+            SUMMARIZE(
+                employees,
+                employees[Store_Id],
+                ""Total Base Salary"", SUM(employees[Base_Salary_Annual])
+            ),
+            [Total Base Salary], ASC
+        ),
+        [Total Base Salary]
+    )
+RETURN
+    ""Least: "" & BottomStoreName & "" : "" & FORMAT(TotalSalaryInStore, ""$#,##0"")"
+"Measure","KPI Label Most Annual Salary per Employee","VAR TopStoreId =
+    MAXX(
+        TOPN(
+            1,
+            SUMMARIZE(
+                employees,
+                employees[Store_Id],
+                ""Average Salary"", AVERAGE(employees[Base_Salary_Annual])
+            ),
+            [Average Salary], DESC
+        ),
+        employees[Store_Id]
+    )
+VAR TopStoreName =
+    LOOKUPVALUE(
+        stores[Store_Name],
+        stores[Store_Id],
+        TopStoreId
+    )
+VAR AverageSalaryInStore =
+    MAXX(
+        TOPN(
+            1,
+            SUMMARIZE(
+                employees,
+                employees[Store_Id],
+                ""Average Salary"", AVERAGE(employees[Base_Salary_Annual])
+            ),
+            [Average Salary], DESC
+        ),
+        [Average Salary]
+    )
+RETURN
+    ""Most : "" & TopStoreName & "" : "" & FORMAT(AverageSalaryInStore, ""$#,##0"")"
+"Measure","KPI Label Least Annual Salary per Employee","VAR BottomStoreId =
+    MAXX(
+        TOPN(
+            1,
+            SUMMARIZE(
+                employees,
+                employees[Store_Id],
+                ""Average Salary"", AVERAGE(employees[Base_Salary_Annual])
+            ),
+            [Average Salary], ASC
+        ),
+        employees[Store_Id]
+    )
+VAR BottomStoreName =
+    LOOKUPVALUE(
+        stores[Store_Name],
+        stores[Store_Id],
+        BottomStoreId
+    )
+VAR AverageSalaryInStore =
+    MAXX(
+        TOPN(
+            1,
+            SUMMARIZE(
+                employees,
+                employees[Store_Id],
+                ""Average Salary"", AVERAGE(employees[Base_Salary_Annual])
+            ),
+            [Average Salary], ASC
+        ),
+        [Average Salary]
+    )
+RETURN
+    ""Least : "" & BottomStoreName & "" : "" & FORMAT(AverageSalaryInStore, ""$#,##0"")"
+"Measure","KPI Label Most Avg Performance Rating","VAR TopEmployeeId =
+    MAXX(
+        TOPN(
+            1,
+            SUMMARIZE(
+                'monthly_performance',
+                'monthly_performance'[Employee_Id],
+                ""Avg Rating per Employee"", AVERAGE('monthly_performance'[Performance_Rating])
+            ),
+            [Avg Rating per Employee], DESC
+        ),
+        'monthly_performance'[Employee_Id]
+    )
+VAR TopStoreId =
+    LOOKUPVALUE(
+        employees[Store_Id],
+        employees[Employee_Id],
+        TopEmployeeId
+    )
+VAR TopStoreName =
+    LOOKUPVALUE(
+        stores[Store_Name],
+        stores[Store_Id],
+        TopStoreId
+    )
+VAR AverageRatingInStore =
+    MAXX(
+        TOPN(
+            1,
+            SUMMARIZE(
+                'monthly_performance',
+                'monthly_performance'[Employee_Id],
+                ""Avg Rating per Employee"", AVERAGE('monthly_performance'[Performance_Rating])
+            ),
+            [Avg Rating per Employee], DESC
+        ),
+        [Avg Rating per Employee]
+    )
+RETURN
+    ""Most : "" & TopStoreName & "" : "" & FORMAT(AverageRatingInStore, ""0.00"")"
+"Measure","KPI Label Least Avg Performance Rating","VAR BottomEmployeeId =
+    MAXX(
+        TOPN(
+            1,
+            SUMMARIZE(
+                'monthly_performance',
+                'monthly_performance'[Employee_Id],
+                ""Avg Rating per Employee"", AVERAGE('monthly_performance'[Performance_Rating])
+            ),
+            [Avg Rating per Employee], ASC
+        ),
+        'monthly_performance'[Employee_Id]
+    )
+VAR BottomStoreId =
+    LOOKUPVALUE(
+        employees[Store_Id],
+        employees[Employee_Id],
+        BottomEmployeeId
+    )
+VAR BottomStoreName =
+    LOOKUPVALUE(
+        stores[Store_Name],
+        stores[Store_Id],
+        BottomStoreId
+    )
+VAR AverageRatingInStore =
+    MAXX(
+        TOPN(
+            1,
+            SUMMARIZE(
+                'monthly_performance',
+                'monthly_performance'[Employee_Id],
+                ""Avg Rating per Employee"", AVERAGE('monthly_performance'[Performance_Rating])
+            ),
+            [Avg Rating per Employee], ASC
+        ),
+        [Avg Rating per Employee]
+    )
+RETURN
+    ""Least : "" & BottomStoreName & "" : "" & FORMAT(AverageRatingInStore, ""0.00"")"
+"Measure","KPI Label Most Avg Potential Score","VAR TopEmployeeId =
+    MAXX(
+        TOPN(
+            1,
+            SUMMARIZE(
+                'monthly_performance',
+                'monthly_performance'[Employee_Id],
+                ""Avg Potential Score per Employee"", AVERAGE('monthly_performance'[Potention_Score])
+            ),
+            [Avg Potential Score per Employee], DESC
+        ),
+        'monthly_performance'[Employee_Id]
+    )
+VAR TopStoreId =
+    LOOKUPVALUE(
+        employees[Store_Id],
+        employees[Employee_Id],
+        TopEmployeeId
+    )
+VAR TopStoreName =
+    LOOKUPVALUE(
+        stores[Store_Name],
+        stores[Store_Id],
+        TopStoreId
+    )
+VAR AveragePotentialScoreInStore =
+    MAXX(
+        TOPN(
+            1,
+            SUMMARIZE(
+                'monthly_performance',
+                'monthly_performance'[Employee_Id],
+                ""Avg Potential Score per Employee"", AVERAGE('monthly_performance'[Potention_Score])
+            ),
+            [Avg Potential Score per Employee], DESC
+        ),
+        [Avg Potential Score per Employee]
+    )
+RETURN
+    ""Most : "" & TopStoreName & "" : "" & FORMAT(AveragePotentialScoreInStore, ""0.00"")"
+"Measure","KPI Label Least Avg Potential Score","VAR BottomEmployeeId =
+    MAXX(
+        TOPN(
+            1,
+            SUMMARIZE(
+                'monthly_performance',
+                'monthly_performance'[Employee_Id],
+                ""Avg Potential Score per Employee"", AVERAGE('monthly_performance'[Potention_Score])
+            ),
+            [Avg Potential Score per Employee], ASC
+        ),
+        'monthly_performance'[Employee_Id]
+    )
+VAR BottomStoreId =
+    LOOKUPVALUE(
+        employees[Store_Id],
+        employees[Employee_Id],
+        BottomEmployeeId
+    )
+VAR BottomStoreName =
+    LOOKUPVALUE(
+        stores[Store_Name],
+        stores[Store_Id],
+        BottomStoreId
+    )
+VAR AveragePotentialScoreInStore =
+    MAXX(
+        TOPN(
+            1,
+            SUMMARIZE(
+                'monthly_performance',
+                'monthly_performance'[Employee_Id],
+                ""Avg Potential Score per Employee"", AVERAGE('monthly_performance'[Potention_Score])
+            ),
+            [Avg Potential Score per Employee], ASC
+        ),
+        [Avg Potential Score per Employee]
+    )
+RETURN
+    ""Least : "" & BottomStoreName & "" : "" & FORMAT(AveragePotentialScoreInStore, ""0.00"")"

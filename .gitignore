@@ -1,0 +1,6 @@
+# Ignore large datasets and temp files
+*.pbix
+*.zip
+*.xlsx
+node_modules/
+.clasp.json
