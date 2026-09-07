@@ -94,7 +94,7 @@ The predictive model for **Heating Oil** achieved strong statistical performance
 │   └── Heating_Oil_Prediction_Workflow.knwf  # KNIME workflow file
 ├── data/
 │   ├── raw_heating_oil_data.csv               # Historical dataset
-│   └── predicted_consumption_results.xlsx     # Model output predictions
+│   └── predicted_consumption_results.csv      # Model output predictions
 ├── assets/
 │   ├── full-workflow-preview.png              # High-res canvas screenshot
 │   └── evaluation-scorer-metrics.png          # Scorer results image

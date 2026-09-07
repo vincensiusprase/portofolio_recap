@@ -3,4 +3,30 @@
 *.zip
 *.xlsx
 node_modules/
-.clasp.json
+
+# GCP Service Account Keys & JSON Configs
+*.json
+!package.json
+clasp.json
+
+# Python Virtual Environment
+venv/
+ENV/
+env/
+
+# Python Cache & Bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environment Variables
+.env
+.env.local
+
+# VS Code Folder & Settings
+.vscode/
+*.code-workspace
+
+# OS Generated Files
+Thumbs.db
+.DS_Store
