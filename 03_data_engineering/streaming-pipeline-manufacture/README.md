@@ -19,12 +19,12 @@ Membangun *real-time streaming pipeline* dari IoT sensor mesin langsung ke BigQu
 
 ## 🏗️ System Architecture
 
-    ```mermaid
+```mermaid
     flowchart LR
         A[IoT Telemetry Simulator\nPython Script] -->|Publish JSON Event| B(Google Cloud Pub/Sub\nTopic: fmcg-telemetry-stream)
         B -->|BigQuery Direct Subscription\nNo Dataflow Required| C[(Google BigQuery\nDataset: fmcg_analytics)]
         C -->|Real-Time SQL Analytics| D[Dashboard OEE & Anomaly Alerting\nLooker Studio / SQL]
-    ```
+```
 
 ---
 
@@ -38,14 +38,14 @@ Membangun *real-time streaming pipeline* dari IoT sensor mesin langsung ke BigQu
 
 ## 📂 Project Structure
 
-    ```text
+```text
     streaming-pipeline-manufacture/
     │
     ├── venv/                       # Virtual environment
     ├── gcp-key.json                # Service Account Key GCP (Di-ignore dari Git)
     ├── main.py                     # Python script IoT telemetry simulator
     └── README.md                   # Project documentation
-    ```
+```
 
 ---
 
@@ -53,7 +53,7 @@ Membangun *real-time streaming pipeline* dari IoT sensor mesin langsung ke BigQu
 
 Tabel di BigQuery didesain menggunakan skema terstruktur dengan fungsionalitas **Partitioning** berdasarkan tanggal dan **Clustering** berdasarkan ID Lini & Mesin untuk optimasi biaya serta performa query.
 
-    ```sql
+```sql
     CREATE TABLE IF NOT EXISTS `[YOUR_PROJECT_ID].fmcg_analytics.fact_machine_telemetry` (
         timestamp TIMESTAMP,
         line_id STRING,
@@ -67,43 +67,46 @@ Tabel di BigQuery didesain menggunakan skema terstruktur dengan fungsionalitas *
     )
     PARTITION BY DATE(timestamp)
     CLUSTER BY line_id, machine_id;
-    ```
+```
 
 ### 🚀 Setup & Installation Guide
 
 #### 1. Prasyarat & Lingkungan Lokal
 * Clone repository ini dan navigasikan ke folder project.
 * Buat dan aktifkan Python Virtual Environment:
-    ```bash
+
+```bash
     python -m venv venv
     # Activate di Windows PowerShell:
     .\venv\Scripts\activate
-    ```
+```
 * Install dependensi library:
-    ```bash
+
+```bash
     pip install google-cloud-pubsub
-    ```
+```
 #### 2. Konfigurasi Google Cloud Platform
 * Buat Pub/Sub Topic bernama fmcg-telemetry-stream.
 * Buat Dataset fmcg_analytics dan jalankan script DDL untuk membuat tabel fact_machine_telemetry di BigQuery.
 * Buat Pub/Sub BigQuery Subscription menggunakan gcloud CLI di Cloud Shell:
-    ```bash
+```bash
     gcloud pubsub subscriptions create fmcg-telemetry-bq-sub \
         --topic=fmcg-telemetry-stream \
         --bigquery-table=project-1-474502:fmcg_analytics.fact_machine_telemetry \
         --use-table-schema
-    ```
+```
+
 #### 3. Menjalankan Pipeline
 * Simpan file Service Account Key GCP berformat JSON di folder project.
 * Jalankan script simulator:
-    ```bash
+```bash
     python main.py
-    ```
+```
 * Tekan Ctrl + C untuk menghentikan pengiriman data.
 
 ### 📊 Sample Analytical SQL Query
 Query berikut digunakan untuk menghitung Availability, Quality Rate, dan mendeteksi anomali vibrasi/suhu pada jendela waktu 15 menit terakhir:
-    ```sql
+```sql
     WITH RawData AS (
     SELECT
         line_id,
@@ -137,7 +140,7 @@ Query berikut digunakan untuk menghitung Availability, Quality Rate, dan mendete
     ORDER BY
     line_id,
     machine_id;
-    ```
+```
 
 
 
