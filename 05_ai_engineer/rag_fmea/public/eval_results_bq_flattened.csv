@@ -1,0 +1,1130 @@
+﻿Test_ID,Category,Sub_Type,Question,Previous_Context,Ground_Truth,Bot_Response,Is_Correct,Score_1_to_5,Keyword_Coverage,Signal_Conflict,Bot_Said_Not_Found,Matrix_Classification,Judge_Reason
+1,direct_master,failure_mode,Apa failure mode yang ada pada FMEA-PLT-002?,-,Failure mode untuk FMEA-PLT-002 adalah Palletizer gripper malfunction pada mesin AST-PALLETIZER-01.,"Berdasarkan data FMEA yang tersedia, berikut detail untuk **FMEA-PLT-002**:
+
+**Informasi Utama:**
+
+* **FMEA_ID:** FMEA-PLT-002
+* **Asset_ID:** AST-PALLETIZER-01
+* **Failure Mode:** **Palletizer gripper malfunction** (Kerusakan/malfungsi gripper pada palletizer)
+* **Department:** WAREHOUSE
+
+**Dampak & Penilaian Risiko:**
+
+* **Potential Effects:** Dropped cases and product damage (Kardus jatuh dan produk rusak)
+* **Severity:** 6
+* **Occurrence:** 3
+* **Detection:** 3
+* **RPN:** 54
+
+**Prevention Controls:**
+
+* Pneumatic pressure check and gripper inspection weekly (Pemeriksaan tekanan pneumatik dan inspeksi gripper setiap minggu)
+
+**Langkah Perbaikan (Repair Steps):**
+
+1. Stop the palletizer and secure the robot arm area (Hentikan palletizer dan amankan area lengan robot)
+2. Inspect gripper pads and pneumatic fittings (Periksa pad gripper dan fitting pneumatik)
+3. Replace damaged pads or seals (Ganti pad atau seal yang rusak)
+4. Test the gripper with empty cases, then with a full layer (Uji gripper dengan kardus kosong, lalu dengan satu layer penuh)
+
+Jadi, **failure mode** pada **FMEA-PLT-002** adalah **Palletizer gripper malfunction** (malfungsi gripper pada mesin palletizer).",True,5,1.0,,False,TP (True Positive),"Jawaban bot menyebutkan failure mode yang benar untuk FMEA-PLT-002 yaitu Palletizer gripper malfunction pada mesin AST-PALLETIZER-01, sesuai Ground Truth. Informasi tambahan yang diberikan juga benar dan tidak mengubah inti jawaban."
+2,direct_master,effect,Apa dampak potensial jika terjadi Low boiler water level pada AST-BOILER-01?,-,Dampak potensial dari Low boiler water level (FMEA-BLR-001) pada AST-BOILER-01 adalah: Boiler shutdown or tube damage.,"Berdasarkan data FMEA untuk **AST-BOILER-01** dengan **FMEA_ID: FMEA-BLR-001**, berikut dampak potensial dari mode kegagalan **Low boiler water level** (Level air boiler rendah):
+
+**Dampak Potensial (Potential Effects):**
+
+* **Boiler shutdown** — Boiler mati/berhenti beroperasi secara paksa.
+* **Tube damage** — Kerusakan pada pipa/tube boiler.
+
+**Detail Terkait Mode Kegagalan Ini:**
+
+* **Failure Mode:** Low boiler water level (Level air boiler rendah)
+* **Severity:** **9** (tingkat keparahan tinggi)
+* **Occurrence:** **2** (frekuensi kemunculan rendah)
+* **Detection:** **3** (kemampuan deteksi cukup baik)
+* **RPN:** **54** (Risk Priority Number)
+* **Department:** UTILITIES
+
+**Tindakan Pencegahan (Prevention Controls):**
+
+* Level probe test setiap shift (Level probe test every shift)
+* Jadwal blowdown (Blowdown schedule)
+
+Dampak ini tergolong **serius** karena nilai **Severity 9** menunjukkan bahwa kegagalan ini berpotensi menyebabkan kerusakan peralatan yang signifikan (tube damage) hingga penghentian operasi boiler secara total.",True,5,0.0,judge=benar tapi keyword kurang,False,TP (True Positive),"Jawaban bot menyebutkan dampak potensial yang sama dengan Ground Truth (Boiler shutdown or tube damage) untuk FMEA-BLR-001 pada AST-BOILER-01. Informasi tambahan yang diberikan (severity, occurrence, detection, RPN, department, prevention controls) benar dan tidak bertentangan, sehingga tidak dianggap salah."
+3,direct_master,prevention,Apa tindakan pencegahan (prevention control) untuk Agitator seal failure pada AST-MIXER-01?,-,Prevention control untuk Agitator seal failure (FMEA-MIX-001) pada AST-MIXER-01 adalah: Seal inspection during preventive maintenance every 3 months.,"Berdasarkan data FMEA untuk **AST-MIXER-01** dengan failure mode **Agitator seal failure** (**FMEA-MIX-001**), berikut tindakan pencegahan (prevention control) yang tertera:
+
+* **Prevention Control:** **Seal inspection during preventive maintenance every 3 months**
+  * Terjemahan: **Inspeksi seal (seal inspection) saat preventive maintenance setiap 3 bulan**
+
+**Ringkasan data terkait (FMEA-MIX-001):**
+
+* **Asset_ID:** **AST-MIXER-01**
+* **Failure Mode:** **Agitator seal failure**
+* **Potential Effects:** **Lubricant contamination of batch and leakage**
+  * Terjemahan: **Kontaminasi lubricant pada batch dan kebocoran**
+* **Severity:** **9**
+* **Occurrence:** **3**
+* **Detection:** **4**
+* **RPN:** **108**
+* **Department:** **PRODUCTION**",True,5,1.0,,False,TP (True Positive),"Jawaban bot memuat prevention control yang sama persis dengan Ground Truth, yaitu 'Seal inspection during preventive maintenance every 3 months', disertai terjemahan dan informasi tambahan yang benar. Tidak ada ID, angka, atau langkah yang berbeda."
+4,direct_master,department,Di department mana mesin AST-CAPPER-01 beroperasi?,-,Mesin AST-CAPPER-01 beroperasi di Department PACKAGING.,"Berdasarkan data FMEA, mesin **AST-CAPPER-01** beroperasi di department **PACKAGING**.
+
+Berikut rincian data terkait mesin tersebut:
+
+* **Asset_ID**: AST-CAPPER-01
+* **Department**: PACKAGING
+
+Mesin ini tercatat memiliki **2 mode kegagalan (failure mode)**:
+
+1. **Cap misaligned or jammed** (Tutup tidak sejajar atau macet)
+   * **FMEA_ID**: FMEA-CAP-001
+   * **RPN**: 84
+   * **Severity**: 7 | **Occurrence**: 3 | **Detection**: 4
+
+2. **Incorrect cap torque** (Torsi tutup tidak tepat)
+   * **FMEA_ID**: FMEA-CAP-002
+   * **RPN**: 72
+   * **Severity**: 8 | **Occurrence**: 3 | **Detection**: 3
+
+Jika Anda ingin mengetahui **langkah perbaikan (repair steps)** untuk salah satu mode kegagalan di atas, silakan sebutkan **FMEA_ID**-nya.",True,5,1.0,,False,TP (True Positive),"Jawaban bot dengan benar menyatakan bahwa mesin AST-CAPPER-01 beroperasi di Department PACKAGING, sesuai dengan Ground Truth. Informasi tambahan yang diberikan (Asset_ID, daftar failure mode, FMEA_ID, RPN, dll.) adalah benar dan tidak bertentangan."
+5,direct_master,rpn,Berapa RPN untuk FMEA-CIP-001?,-,"RPN untuk FMEA-CIP-001 (Caustic concentration out of range) adalah 81 (Severity: 9, Occurrence: 3, Detection: 3).","Berdasarkan data FMEA yang tersedia:
+
+**FMEA_ID:** FMEA-CIP-001
+**Asset_ID:** AST-CIP-01
+
+**Nilai RPN: 81**
+
+Rincian komponen penilaian risikonya:
+
+* **Severity (Keparahan):** 9
+* **Occurrence (Keterjadian):** 3
+* **Detection (Deteksi):** 3
+* **RPN (Risk Priority Number):** 81 *(hasil dari 9 × 3 × 3)*
+
+**Konteks terkait:**
+
+* **Failure Mode:** Caustic concentration out of range (Konsentrasi kaustik di luar rentang standar)
+* **Potential Effects:** Ineffective cleaning and cross-contamination (Pembersihan tidak efektif dan kontaminasi silang)
+* **Prevention Controls:** Conductivity sensor check and titration each shift (Pemeriksaan sensor konduktivitas dan titrasi setiap shift)
+* **Department:** PRODUCTION
+
+Jika Anda ingin mengetahui **langkah perbaikan (Repair Steps)** untuk FMEA ini, silakan beri tahu saya.",True,5,1.0,,False,TP (True Positive),"Jawaban bot sesuai dengan Ground Truth: RPN 81 dengan Severity 9, Occurrence 3, Detection 3. Informasi tambahan benar dan tidak mengubah data inti."
+6,direct_master,failure_mode,Apa failure mode yang ada pada FMEA-LBL-002?,-,Failure mode untuk FMEA-LBL-002 adalah Wrong label applied (changeover error) pada mesin AST-LABELER-01.,"Berdasarkan data FMEA yang tersedia, berikut detail untuk **FMEA-LBL-002**:
+
+**Informasi Utama:**
+
+* **FMEA_ID:** FMEA-LBL-002
+* **Asset_ID:** AST-LABELER-01
+* **Department:** PACKAGING
+
+**Failure Mode (Mode Kegagalan):**
+
+* **Wrong label applied (changeover error)** — *Label salah terpasang (kesalahan saat pergantian/changeover)*
+
+**Dampak Potensial (Potential Effects):**
+
+* **Mislabeled product and possible recall** — *Produk salah label dan kemungkinan penarikan produk (recall)*
+
+**Penilaian Risiko (RPN Assessment):**
+
+* **Severity (Tingkat Keparahan):** 10
+* **Occurrence (Frekuensi Kejadian):** 2
+* **Detection (Deteksi):** 3
+* **RPN (Risk Priority Number):** 60
+
+**Prevention Controls (Kontrol Pencegahan):**
+
+* **Line clearance checklist and barcode verification at changeover** — *Checklist pembersihan lini dan verifikasi barcode saat pergantian (changeover)*
+
+Jika Anda memerlukan **urutan langkah perbaikan (Repair Steps)** untuk failure mode ini, silakan beri tahu saya.",True,5,1.0,,False,TP (True Positive),"Jawaban bot memuat failure mode yang benar untuk FMEA-LBL-002, yaitu 'Wrong label applied (changeover error)' pada mesin AST-LABELER-01, sesuai Ground Truth. Informasi tambahan yang diberikan juga benar dan tidak mengubah makna."
+7,direct_master,effect,Apa dampak potensial jika terjadi Checkweigher calibration drift pada AST-CHECKWEIGH-01?,-,Dampak potensial dari Checkweigher calibration drift (FMEA-CHK-001) pada AST-CHECKWEIGH-01 adalah: Underweight product passes or good product is rejected.,"Berdasarkan data FMEA untuk **AST-CHECKWEIGH-01** dengan **FMEA_ID: FMEA-CHK-001**, berikut dampak potensial dari **Checkweigher calibration drift**:
+
+**Dampak Potensial (Potential Effects):**
+* **Underweight product passes** — produk dengan berat kurang lolos dari pemeriksaan
+* **Good product is rejected** — produk yang sebenarnya baik justru ditolak
+
+**Detail Terkait:**
+
+* **Failure Mode:** Checkweigher calibration drift
+* **Severity:** **7**
+* **Occurrence:** **4**
+* **Detection:** **3**
+* **RPN:** **84**
+* **Department:** QUALITY
+
+**Prevention Control:**
+* Daily calibration with test weights (Kalibrasi harian menggunakan anak timbangan bersertifikat)
+
+**Langkah Perbaikan (Repair Steps):**
+1. Stop the checkweigher and tag it out of service — Hentikan checkweigher dan tandai sebagai tidak dapat digunakan
+2. Calibrate using certified test weights — Kalibrasi menggunakan anak timbangan bersertifikat
+3. Re-inspect product passed since the last good check — Periksa ulang produk yang lolos sejak pemeriksaan baik terakhir
+4. Restart and verify with 3 known test packs — Nyalakan ulang dan verifikasi dengan 3 paket uji yang diketahui",True,5,0.0,judge=benar tapi keyword kurang,False,TP (True Positive),"Jawaban bot memuat dampak potensial yang sama persis dengan Ground Truth, yaitu 'Underweight product passes' dan 'Good product is rejected', serta menyertakan FMEA_ID dan ID alat yang benar. Informasi tambahan (severity, occurrence, detection, RPN, department, prevention control, repair steps) benar dan tidak bertentangan, sehingga jawaban dinilai benar dan lengkap."
+8,direct_master,prevention,Apa tindakan pencegahan (prevention control) untuk Metal detector sensitivity loss pada AST-METALDET-01?,-,Prevention control untuk Metal detector sensitivity loss (FMEA-MTD-001) pada AST-METALDET-01 adalah: Test piece verification at start and every 2 hours.,"Berdasarkan data FMEA yang tersedia untuk **AST-METALDET-01** (**FMEA-MTD-001**), berikut tindakan pencegahan untuk mode kegagalan **Metal detector sensitivity loss**:
+
+**Prevention Control (Tindakan Pencegahan):**
+
+* **Test piece verification at start and every 2 hours**
+  * Verifikasi *test piece* (potongan uji) pada saat awal produksi dan setiap **2 jam** sekali.
+
+**Konteks Terkait:**
+
+* **Failure Mode:** Metal detector sensitivity loss (kehilangan sensitivitas detektor logam)
+* **Potential Effects:** Undetected metal contamination (kontaminasi logam tidak terdeteksi)
+* **Severity:** 10
+* **Occurrence:** 2
+* **Detection:** 3
+* **RPN:** 60
+* **Department:** QUALITY
+
+Tindakan pencegahan ini berfungsi memastikan sensitivitas detektor tetap terjaga melalui pengecekan berkala menggunakan *test piece*, sehingga risiko kontaminasi logam yang tidak terdeteksi dapat diminimalkan.",True,5,1.0,,False,TP (True Positive),"Jawaban bot memuat prevention control yang sama persis dengan Ground Truth, yaitu 'Test piece verification at start and every 2 hours', disertai terjemahan dan informasi tambahan yang benar serta tidak ada ID/angka/langkah yang salah."
+9,direct_master,department,Di department mana mesin AST-INKJET-01 beroperasi?,-,Mesin AST-INKJET-01 beroperasi di Department PACKAGING.,"Berdasarkan data FMEA, mesin **AST-INKJET-01** beroperasi di department **PACKAGING**.
+
+Berikut detailnya:
+
+* **Asset_ID**: AST-INKJET-01
+* **Department**: **PACKAGING**
+
+Mesin ini tercatat memiliki dua mode kegagalan (failure mode) pada database:
+
+1. **FMEA-CDG-001** — *Batch code illegible or missing* (Kode batch tidak terbaca atau hilang)
+   * **RPN**: 64 | **Severity**: 8 | **Occurrence**: 4 | **Detection**: 2
+
+2. **FMEA-CDG-002** — *Wrong expiry date printed* (Tanggal kedaluwarsa salah tercetak)
+   * **RPN**: 54 | **Severity**: 9 | **Occurrence**: 2 | **Detection**: 3
+
+Jika Anda memerlukan langkah perbaikan (repair steps) untuk salah satu mode kegagalan di atas, silakan beri tahu saya FMEA_ID-nya.",True,5,1.0,,False,TP (True Positive),Jawaban benar dan lengkap: menyatakan mesin AST-INKJET-01 beroperasi di Department PACKAGING sesuai Ground Truth. Informasi tambahan tentang failure mode tidak bertentangan dan tidak mengubah jawaban inti.
+10,direct_master,rpn,Berapa RPN untuk FMEA-MIX-003?,-,"RPN untuk FMEA-MIX-003 (Dosing pump inaccurate) adalah 128 (Severity: 8, Occurrence: 4, Detection: 4).","Berdasarkan data FMEA yang tersedia:
+
+**RPN untuk FMEA-MIX-003** adalah **128**
+
+Rincian penilaian risikonya:
+
+* **FMEA_ID:** FMEA-MIX-003
+* **Asset_ID:** AST-DOSING-01
+* **Failure Mode:** Dosing pump inaccurate (Pompa dosing tidak akurat)
+* **Severity (Keparahan):** 8
+* **Occurrence (Kejadian):** 4
+* **Detection (Deteksi):** 4
+* **RPN (Risk Priority Number):** 8 × 4 × 4 = **128**
+
+**Dampak Potensial:** Formulation error affecting taste or performance (Kesalahan formulasi yang memengaruhi rasa atau performa produk)
+
+**Kontrol Pencegahan:** Monthly pump calibration and flow meter verification (Kalibrasi pompa bulanan dan verifikasi flow meter)
+
+**Departemen:** PRODUCTION
+
+Nilai **RPN 128** ini termasuk kategori risiko yang perlu perhatian, mengingat **Severity 8** yang tinggi — kegagalan ini berdampak langsung pada kualitas formulasi produk.",True,5,1.0,,False,TP (True Positive),"Jawaban menyebutkan RPN 128 untuk FMEA-MIX-003 dengan rincian Severity 8, Occurrence 4, Detection 4, sesuai Ground Truth. Informasi tambahan benar dan tidak mengubah data inti."
+11,direct_master,failure_mode,Apa failure mode yang ada pada FMEA-FIL-002?,-,Failure mode untuk FMEA-FIL-002 adalah Clogged filling nozzle pada mesin AST-FILLER-01.,"Berdasarkan data FMEA yang tersedia, berikut detail untuk **FMEA-FIL-002**:
+
+**Informasi Utama:**
+
+* **Asset_ID:** AST-FILLER-01
+* **FMEA_ID:** FMEA-FIL-002
+* **Failure Mode:** **Clogged filling nozzle** (Nozel pengisian tersumbat)
+* **Department:** PACKAGING
+
+**Dampak & Kontrol:**
+
+* **Potential Effects (Dampak Potensial):** Non-uniform bottle fill volume (Volume isi botol tidak seragam)
+* **Prevention Controls (Kontrol Pencegahan):** Scheduled nozzle cleaning and inlet filter replacement (Pembersihan nozel terjadwal dan penggantian filter inlet)
+
+**Penilaian Risiko (RPN):**
+
+* **Severity (Tingkat Keparahan):** 6
+* **Occurrence (Frekuensi Kejadian):** 5
+* **Detection (Deteksi):** 2
+* **RPN (Risk Priority Number):** **60**
+
+Jadi, failure mode utama pada **FMEA-FIL-002** adalah **nozel pengisian tersumbat (Clogged filling nozzle)** yang menyebabkan volume isi botol tidak seragam.",True,5,1.0,,False,TP (True Positive),"Jawaban bot menyebutkan failure mode Clogged filling nozzle untuk FMEA-FIL-002 pada mesin AST-FILLER-01, sesuai Ground Truth. Informasi tambahan benar dan tidak mengubah inti jawaban."
+12,direct_master,effect,Apa dampak potensial jika terjadi Wrong expiry date printed pada AST-INKJET-01?,-,Dampak potensial dari Wrong expiry date printed (FMEA-CDG-002) pada AST-INKJET-01 adalah: Non-compliant labeling and product withdrawal risk.,"Berdasarkan data FMEA untuk **AST-INKJET-01** dengan **FMEA_ID: FMEA-CDG-002**, berikut dampak potensial dari mode kegagalan **Wrong expiry date printed** (tanggal kedaluwarsa salah tercetak):
+
+**Dampak Potensial (Potential Effects):**
+
+* **Non-compliant labeling** — Pelabelan tidak sesuai standar/regulasi.
+* **Product withdrawal risk** — Risiko penarikan produk dari pasaran.
+
+**Ringkasan Parameter Terkait:**
+
+* **Failure Mode**: Wrong expiry date printed (tanggal kedaluwarsa salah tercetak)
+* **Severity**: **9** (tingkat keparahan tinggi)
+* **Occurrence**: **2** (frekuensi kemunculan rendah)
+* **Detection**: **3** (kemampuan deteksi baik)
+* **RPN**: **54**
+* **Department**: PACKAGING
+* **Prevention Controls**: Two-person verification of code data at start-up (verifikasi dua orang terhadap data kode saat start-up)
+
+Karena **Severity** bernilai **9**, dampak ini tergolong kritis — kesalahan tanggal kedaluwarsa dapat menyebabkan produk tidak memenuhi regulasi dan berisiko ditarik dari distribusi.",True,5,0.0,judge=benar tapi keyword kurang,False,TP (True Positive),"Jawaban benar dan lengkap, sesuai Ground Truth: menyebutkan FMEA-CDG-002, mode kegagalan Wrong expiry date printed, dan dampak Non-compliant labeling serta Product withdrawal risk. Informasi tambahan benar dan tidak mengubah makna."
+13,direct_master,prevention,Apa tindakan pencegahan (prevention control) untuk Shrink tunnel temperature unstable pada AST-SHRINK-01?,-,Prevention control untuk Shrink tunnel temperature unstable (FMEA-SHR-001) pada AST-SHRINK-01 adalah: Thermocouple verification and heater inspection monthly.,"Berdasarkan data FMEA untuk **AST-SHRINK-01** (**FMEA-SHR-001**), berikut tindakan pencegahan untuk failure mode **Shrink tunnel temperature unstable**:
+
+**Prevention Control (Tindakan Pencegahan):**
+
+* **Thermocouple verification** — verifikasi termokopel
+* **Heater inspection** — inspeksi elemen pemanas
+* **Frekuensi: monthly** — dilakukan setiap bulan
+
+**Ringkasan Terjemahan:**
+Tindakan pencegahan yang diterapkan adalah **verifikasi termokopel** dan **inspeksi heater (pemanas)** secara **bulanan**.
+
+**Konteks Terkait (untuk referensi):**
+
+* **Failure Mode:** Shrink tunnel temperature unstable — suhu terowongan shrink tidak stabil
+* **Potential Effects:** Loose or burnt film on packs — film longgar atau terbakar pada kemasan
+* **Severity:** 4 | **Occurrence:** 4 | **Detection:** 3
+* **RPN:** 48
+* **Department:** PACKAGING",True,5,0.0,judge=benar tapi keyword kurang,False,TP (True Positive),"Jawaban bot benar dan lengkap, sesuai dengan Ground Truth. Tindakan pencegahan 'Thermocouple verification and heater inspection monthly' disampaikan dengan tepat, termasuk terjemahan dan informasi tambahan yang benar (ID, failure mode, efek, severity, occurrence, detection, RPN, department). Tidak ada kontradiksi atau kesalahan."
+14,direct_master,department,Di department mana mesin AST-CAPPER-01 beroperasi?,-,Mesin AST-CAPPER-01 beroperasi di Department PACKAGING.,"Berdasarkan data FMEA, mesin **AST-CAPPER-01** beroperasi di department **PACKAGING**.
+
+Informasi ini tercatat pada kedua FMEA berikut:
+
+* **FMEA-CAP-001** — Failure Mode: *Cap misaligned or jammed* (Tutup tidak sejajar atau macet)
+* **FMEA-CAP-002** — Failure Mode: *Incorrect cap torque* (Torsi tutup tidak sesuai)
+
+Keduanya terdaftar pada **Asset_ID: AST-CAPPER-01** dengan **Department: PACKAGING**.",True,5,1.0,,False,TP (True Positive),"Jawaban bot menyatakan mesin AST-CAPPER-01 beroperasi di Department PACKAGING, sesuai dengan Ground Truth. Informasi tambahan tentang FMEA terkait benar dan tidak mengubah jawaban inti."
+15,direct_master,rpn,Berapa RPN untuk FMEA-BLR-002?,-,"RPN untuk FMEA-BLR-002 (Steam trap failure) adalah 100 (Severity: 5, Occurrence: 5, Detection: 4).","Berdasarkan data FMEA yang tersedia, berikut detail untuk **FMEA-BLR-002**:
+
+**Informasi Utama:**
+
+* **FMEA_ID:** FMEA-BLR-002
+* **Asset_ID:** AST-BOILER-01
+* **Failure Mode:** Steam trap failure (Kegagalan steam trap)
+* **Department:** UTILITIES
+
+**Nilai RPN (Risk Priority Number):**
+
+* **RPN:** **100**
+
+**Rincian Komponen RPN:**
+
+* **Severity (Tingkat Keparahan):** 5
+* **Occurrence (Frekuensi Kejadian):** 5
+* **Detection (Deteksi):** 4
+
+**Perhitungan:** 5 × 5 × 4 = **100**
+
+**Dampak Potensial (Potential Effects):**
+
+* Steam loss and inconsistent process temperature (Kehilangan steam dan suhu proses yang tidak konsisten)
+
+**Tindakan Pencegahan (Prevention Controls):**
+
+* Steam trap survey every quarter (Survei steam trap setiap kuartal)
+
+Jika Anda memerlukan **urutan langkah perbaikan (Repair Steps)** untuk FMEA ini, silakan beri tahu saya.",True,5,1.0,,False,TP (True Positive),"Jawaban bot menyebutkan RPN 100 dengan rincian Severity 5, Occurrence 5, Detection 4, sesuai Ground Truth. Informasi tambahan benar dan tidak mengubah data inti."
+16,asset_overview,-,Apa saja failure mode yang tercatat pada AST-COMPRESSOR-01?,-,Failure mode yang tercatat pada AST-COMPRESSOR-01 ada 2: Oil carryover into air line (FMEA-CMP-002); Compressed air pressure drop (FMEA-CMP-001).,"Berikut adalah **failure mode** yang tercatat pada **AST-COMPRESSOR-01**:
+
+**1. Compressed air pressure drop** (Penurunan tekanan udara bertekanan)
+   - **FMEA_ID:** FMEA-CMP-001
+   - **Potential Effects (Dampak Potensial):** Pneumatic equipment failure on production lines (Kegagalan peralatan pneumatik pada lini produksi)
+   - **Prevention Controls (Kontrol Pencegahan):** Filter change and pressure monitoring alarms (Penggantian filter dan alarm pemantauan tekanan)
+   - **Severity (Tingkat Keparahan):** 7
+   - **Occurrence (Frekuensi Kejadian):** 4
+   - **Detection (Deteksi):** 2
+   - **RPN:** 56
+   - **Department:** UTILITIES
+
+**2. Oil carryover into air line** (Terbawanya oli ke jalur udara)
+   - **FMEA_ID:** FMEA-CMP-002
+   - **Potential Effects (Dampak Potensial):** Contamination of product-contact air (Kontaminasi udara yang kontak dengan produk)
+   - **Prevention Controls (Kontrol Pencegahan):** Air quality test every quarter and coalescing filter replacement (Uji kualitas udara tiap kuartal dan penggantian coalescing filter)
+   - **Severity (Tingkat Keparahan):** 9
+   - **Occurrence (Frekuensi Kejadian):** 2
+   - **Detection (Deteksi):** 4
+   - **RPN:** 72
+   - **Department:** UTILITIES
+
+Secara total, terdapat **2 failure mode** yang tercatat untuk aset **AST-COMPRESSOR-01**. Perlu diperhatikan bahwa **FMEA-CMP-002** memiliki **RPN lebih tinggi (72)** dengan **Severity 9**, sehingga menjadi prioritas utama untuk ditangani.
+
+Apakah Anda ingin saya tampilkan **langkah perbaikan (Repair Steps)** untuk salah satu failure mode tersebut?",True,5,1.0,,False,TP (True Positive),"Jawaban mencantumkan kedua failure mode yang benar beserta FMEA_ID yang sesuai (FMEA-CMP-001 dan FMEA-CMP-002). Informasi tambahan yang diberikan benar dan tidak mengubah data inti. Tidak ada ID, angka, atau langkah yang berbeda dari Ground Truth."
+17,asset_overview,-,Apa saja failure mode yang tercatat pada AST-CIP-01?,-,Failure mode yang tercatat pada AST-CIP-01 ada 2: CIP supply pump failure (FMEA-CIP-002); Caustic concentration out of range (FMEA-CIP-001).,"Berikut adalah **failure mode** yang tercatat pada **AST-CIP-01**:
+
+**1. Caustic concentration out of range**
+* **FMEA_ID:** FMEA-CIP-001
+* **Dampak (Potential Effects):** Pembersihan tidak efektif dan risiko kontaminasi silang (*Ineffective cleaning and cross-contamination*)
+* **Severity:** 9
+* **Occurrence:** 3
+* **Detection:** 3
+* **RPN:** 81
+* **Prevention Controls:** Pemeriksaan sensor konduktivitas dan titrasi setiap shift (*Conductivity sensor check and titration each shift*)
+
+**2. CIP supply pump failure**
+* **FMEA_ID:** FMEA-CIP-002
+* **Dampak (Potential Effects):** Pembersihan tidak tuntas dan keterlambatan start-up (*Incomplete cleaning and delayed start-up*)
+* **Severity:** 6
+* **Occurrence:** 3
+* **Detection:** 3
+* **RPN:** 54
+* **Prevention Controls:** Pemantauan getaran dan pompa cadangan tersedia di lokasi (*Vibration monitoring and spare pump on site*)
+
+Catatan: **FMEA-CIP-001** memiliki **RPN tertinggi (81)** dengan **Severity 9**, sehingga menjadi prioritas utama untuk ditangani.
+
+Apakah Anda ingin saya tampilkan **langkah perbaikan (Repair Steps)** untuk salah satu failure mode di atas?",True,5,1.0,,False,TP (True Positive),"Jawaban menyebutkan kedua failure mode yang benar (Caustic concentration out of range FMEA-CIP-001 dan CIP supply pump failure FMEA-CIP-002) sesuai Ground Truth, dengan informasi tambahan yang benar dan tidak ada ID/angka yang salah."
+18,asset_overview,-,Apa saja failure mode yang tercatat pada AST-CASEPACK-01?,-,Failure mode yang tercatat pada AST-CASEPACK-01 ada 2: Wrong pack count in case (FMEA-CSE-002); Case erector fails to form cartons (FMEA-CSE-001).,"Berikut adalah **failure mode** yang tercatat pada **AST-CASEPACK-01** (Departemen: **PACKAGING**):
+
+---
+
+**1. FMEA-CSE-001 — Case erector fails to form cartons**
+*(Case erector gagal membentuk karton)*
+
+* **Potential Effects (Dampak):** Line stoppage and packing delays *(Henti lini dan keterlambatan pengemasan)*
+* **Severity:** 5
+* **Occurrence:** 5
+* **Detection:** 2
+* **RPN:** 50
+* **Prevention Controls:** Check vacuum cups and carton magazine every shift *(Periksa vacuum cup dan majalah karton setiap shift)*
+
+---
+
+**2. FMEA-CSE-002 — Wrong pack count in case**
+*(Jumlah isi karton salah)*
+
+* **Potential Effects (Dampak):** Customer complaints and shortage claims *(Keluhan pelanggan dan klaim kekurangan)*
+* **Severity:** 7
+* **Occurrence:** 3
+* **Detection:** 4
+* **RPN:** 84
+* **Prevention Controls:** Count sensor check and end-of-line audit *(Pemeriksaan sensor hitung dan audit di akhir lini)*
+
+---
+
+**Ringkasan:**
+
+* Total terdapat **2 failure mode** pada asset ini.
+* Failure mode dengan **RPN tertinggi** adalah **FMEA-CSE-002 (Wrong pack count in case)** dengan nilai **RPN 84**, sehingga menjadi prioritas perhatian utama.
+
+Jika Anda ingin melihat **urutan langkah perbaikan (Repair Steps)** untuk salah satu failure mode di atas, silakan sebutkan **FMEA_ID**-nya.",True,5,1.0,,False,TP (True Positive),"Jawaban menyebutkan kedua failure mode yang benar (FMEA-CSE-001 dan FMEA-CSE-002) sesuai Ground Truth, dengan informasi tambahan yang benar dan tidak ada ID/angka yang salah."
+19,asset_overview,-,Apa saja failure mode yang tercatat pada AST-CHECKWEIGH-01?,-,Failure mode yang tercatat pada AST-CHECKWEIGH-01 ada 2: Reject gate fails to actuate (FMEA-CHK-002); Checkweigher calibration drift (FMEA-CHK-001).,"Berikut adalah **failure mode** yang tercatat pada **AST-CHECKWEIGH-01**:
+
+**1. Checkweigher calibration drift** (Penyimpangan kalibrasi checkweigher)
+
+* **FMEA_ID:** FMEA-CHK-001
+* **Severity:** 7
+* **Occurrence:** 4
+* **Detection:** 3
+* **RPN:** 84
+* **Potential Effects:** Underweight product passes or good product is rejected (Produk kurang berat lolos atau produk baik ditolak)
+* **Prevention Controls:** Daily calibration with test weights (Kalibrasi harian dengan anak timbangan bersertifikat)
+* **Department:** QUALITY
+
+**2. Reject gate fails to actuate** (Gerbang penolak gagal beroperasi)
+
+* **FMEA_ID:** FMEA-CHK-002
+* **Severity:** 9
+* **Occurrence:** 3
+* **Detection:** 2
+* **RPN:** 54
+* **Potential Effects:** Underweight or defective products reach customers (Produk kurang berat atau cacat sampai ke pelanggan)
+* **Prevention Controls:** Reject gate function test at start of each shift (Uji fungsi gerbang penolak di awal setiap shift)
+* **Department:** QUALITY
+
+Secara total, terdapat **2 failure mode** yang tercatat untuk asset **AST-CHECKWEIGH-01**.",True,5,1.0,,False,TP (True Positive),"Jawaban menyebutkan kedua failure mode yang benar (Checkweigher calibration drift FMEA-CHK-001 dan Reject gate fails to actuate FMEA-CHK-002) sesuai Ground Truth, dengan informasi tambahan yang benar dan tidak ada ID/angka yang salah."
+20,sequential_steps,-,Berikan urutan langkah perbaikan lengkap untuk FMEA-PAS-001 pada AST-PASTEUR-01.,-,Step 1: Divert product to the reprocess or hold tank automatically. Step 2: Verify the temperature sensor against a calibrated reference. Step 3: Inspect the heat exchanger and steam supply. Step 4: Reprocess the diverted product and restart after QA approval.,"Berikut urutan langkah perbaikan lengkap untuk **FMEA-PAS-001** pada **AST-PASTEUR-01**:
+
+**Informasi Kasus:**
+* **Failure Mode:** Pasteurization temperature below set point (Suhu pasteurisasi di bawah titik setel)
+* **Potential Effects:** Microbial survival and unsafe product (Kelangsungan hidup mikroba dan produk tidak aman)
+* **Severity:** 10 | **Occurrence:** 2 | **Detection:** 2 | **RPN:** 40
+* **Department:** PRODUCTION
+
+**Urutan Langkah Perbaikan (Repair Steps):**
+
+1. **Langkah 1:** Divert product to the reprocess or hold tank automatically.
+   * *Alihkan produk ke tangki reproses atau tangki penahan secara otomatis.*
+
+2. **Langkah 2:** Verify the temperature sensor against a calibrated reference.
+   * *Verifikasi sensor suhu terhadap referensi yang telah terkalibrasi.*
+
+3. **Langkah 3:** Inspect the heat exchanger and steam supply.
+   * *Periksa heat exchanger dan pasokan steam.*
+
+4. **Langkah 4:** Reprocess the diverted product and restart after QA approval.
+   * *Reproses produk yang telah dialihkan dan mulai kembali setelah mendapat persetujuan QA.*
+
+**Prevention Controls:** Continuous temperature recording with automatic flow diversion (Perekaman suhu berkelanjutan dengan pengalihan aliran otomatis).",True,5,1.0,,False,TP (True Positive),"Semua 4 langkah perbaikan sesuai dengan Ground Truth, urutan benar, dan tidak ada ID/angka yang salah. Informasi tambahan yang diberikan juga benar."
+21,sequential_steps,-,Bagaimana prosedur langkah demi langkah perbaikan Incomplete ingredient dispersion pada AST-MIXER-01?,-,Step 1: Halt the transfer of the batch to filling. Step 2: Extend mixing time per the SOP and re-sample. Step 3: Check agitator speed and blade condition. Step 4: Release the batch only after lab results meet specification.,"Berikut prosedur langkah demi langkah perbaikan untuk **Incomplete ingredient dispersion** pada **AST-MIXER-01** (FMEA_ID: **FMEA-MIX-002**):
+
+**Langkah Perbaikan (Repair Steps):**
+
+1. **Hentikan transfer batch ke filling**  
+   *(""Halt the transfer of the batch to filling."")*
+
+2. **Perpanjang waktu mixing sesuai SOP dan lakukan sampling ulang**  
+   *(""Extend mixing time per the SOP and re-sample."")*
+
+3. **Periksa kecepatan agitator dan kondisi blade**  
+   *(""Check agitator speed and blade condition."")*
+
+4. **Lepaskan batch hanya setelah hasil lab memenuhi spesifikasi**  
+   *(""Release the batch only after lab results meet specification."")*
+
+**Informasi Terkait:**
+
+* **Failure Mode:** Incomplete ingredient dispersion
+* **Potential Effects:** Batch out of specification (viscosity or concentration) — *Batch di luar spesifikasi (viskositas atau konsentrasi)*
+* **Prevention Controls:** Timed mixing recipe with in-process sample test — *Resep mixing berwaktu dengan uji sampel dalam proses*
+* **Severity:** 7
+* **Occurrence:** 4
+* **Detection:** 3
+* **RPN:** 84
+* **Department:** PRODUCTION",True,5,1.0,,False,TP (True Positive),"Semua 4 langkah sesuai Ground Truth, urutan benar, terjemahan akurat, dan informasi tambahan benar."
+22,sequential_steps,-,Sebutkan urutan perbaikan lengkap untuk FMEA-CHK-002.,-,Step 1: Stop the line and hold product produced since the last test. Step 2: Inspect the pneumatic actuator and air supply. Step 3: Replace the faulty solenoid valve or cylinder. Step 4: Run a reject test with a test pack before restart.,"Berikut urutan perbaikan lengkap untuk **FMEA-CHK-002** (**Asset_ID: AST-CHECKWEIGH-01**), dengan **Failure Mode: Reject gate fails to actuate** (Gerbang penolak gagal beroperasi):
+
+**Urutan Langkah Perbaikan:**
+
+1. **Langkah 1:** Stop the line and hold product produced since the last test.
+   * Hentikan lini produksi dan tahan (hold) produk yang diproduksi sejak pengujian terakhir.
+
+2. **Langkah 2:** Inspect the pneumatic actuator and air supply.
+   * Periksa aktuator pneumatik dan pasokan udara.
+
+3. **Langkah 3:** Replace the faulty solenoid valve or cylinder.
+   * Ganti solenoid valve atau silinder yang rusak.
+
+4. **Langkah 4:** Run a reject test with a test pack before restart.
+   * Lakukan uji penolakan (reject test) dengan test pack sebelum memulai ulang lini.
+
+**Ringkasan Parameter FMEA:**
+
+* **Potential Effects (Dampak Potensial):** Underweight or defective products reach customers — Produk kurang berat atau cacat sampai ke pelanggan.
+* **Prevention Controls (Kontrol Pencegahan):** Reject gate function test at start of each shift — Uji fungsi gerbang penolak di awal setiap shift.
+* **Severity (Tingkat Keparahan):** **9**
+* **Occurrence (Frekuensi Kejadian):** **3**
+* **Detection (Deteksi):** **2**
+* **RPN (Risk Priority Number):** **54**
+* **Department:** **QUALITY**",True,5,1.0,,False,TP (True Positive),"Semua 4 langkah perbaikan sesuai Ground Truth, urutan benar, tanpa ID/angka yang salah. Informasi tambahan benar dan tidak mengganggu."
+23,sequential_steps,-,Apa saja langkah-langkah penanganan Heat exchanger plate fouling di AST-PASTEUR-01?,-,Step 1: Schedule an extra CIP cycle with the acid and caustic sequence. Step 2: Measure the pressure drop across the plates. Step 3: Open the unit and inspect the plates for scaling. Step 4: Replace gaskets or plates if fouling persists.,"Berikut adalah langkah-langkah penanganan untuk **Heat exchanger plate fouling** (pengotoran pelat penukar panas) pada **AST-PASTEUR-01** (FMEA_ID: **FMEA-PAS-002**):
+
+**Langkah Perbaikan (Repair Steps):**
+
+1. **Jadwalkan siklus CIP tambahan** dengan urutan asam dan kaustik (*Schedule an extra CIP cycle with the acid and caustic sequence*).
+
+2. **Ukur penurunan tekanan** (pressure drop) di sepanjang pelat (*Measure the pressure drop across the plates*).
+
+3. **Buka unit dan periksa pelat** untuk melihat adanya kerak/scaling (*Open the unit and inspect the plates for scaling*).
+
+4. **Ganti gasket atau pelat** jika pengotoran (fouling) masih berlanjut (*Replace gaskets or plates if fouling persists*).
+
+---
+
+**Informasi Terkait (FMEA-PAS-002):**
+
+* **Failure Mode:** Heat exchanger plate fouling (pengotoran pelat penukar panas)
+
+* **Potential Effects:** Reduced heat transfer and higher energy use (penurunan perpindahan panas dan konsumsi energi lebih tinggi)
+
+* **Prevention Controls:** CIP cycle after each run and pressure drop monitoring (siklus CIP setelah setiap proses dan pemantauan penurunan tekanan)
+
+* **Severity:** 5
+
+* **Occurrence:** 6
+
+* **Detection:** 3
+
+* **RPN:** 90
+
+* **Department:** PRODUCTION",True,5,1.0,,False,TP (True Positive),"Semua 4 langkah dari Ground Truth diterjemahkan dan disajikan dengan benar dan lengkap, urutan sesuai, tanpa ID/angka yang salah. Informasi tambahan benar dan tidak mengganggu."
+24,sequential_steps,-,Berikan urutan langkah perbaikan lengkap untuk FMEA-CSE-002 pada AST-CASEPACK-01.,-,Step 1: Hold the affected pallets and mark cases for rework. Step 2: Check the count sensors and clean their lenses. Step 3: Adjust the pick-and-place timing. Step 4: Audit 20 cases for pack count before release.,"Berikut urutan langkah perbaikan lengkap untuk **FMEA-CSE-002** pada **AST-CASEPACK-01** (Departemen: **PACKAGING**):
+
+**Informasi Kasus:**
+* **Failure Mode:** Wrong pack count in case (Jumlah pack salah di dalam karton)
+* **Potential Effects:** Customer complaints and shortage claims (Keluhan pelanggan dan klaim kekurangan)
+* **Severity:** 7 | **Occurrence:** 3 | **Detection:** 4 | **RPN:** 84
+* **Prevention Controls:** Count sensor check and end-of-line audit (Pemeriksaan sensor hitung dan audit di akhir lini)
+
+**Urutan Langkah Perbaikan:**
+
+1. **Langkah 1:** Hold the affected pallets and mark cases for rework.
+   * *(Tahan palet yang terdampak dan tandai karton untuk dikerjakan ulang.)*
+
+2. **Langkah 2:** Check the count sensors and clean their lenses.
+   * *(Periksa sensor hitung dan bersihkan lensanya.)*
+
+3. **Langkah 3:** Adjust the pick-and-place timing.
+   * *(Sesuaikan timing pick-and-place.)*
+
+4. **Langkah 4:** Audit 20 cases for pack count before release.
+   * *(Audit 20 karton untuk jumlah pack sebelum dilepas/rilis.)*
+
+Silakan dijalankan sesuai urutan di atas. Jika Anda memerlukan detail parameter atau tindakan pencegahan tambahan untuk kasus ini, beri tahu saya.",True,5,1.0,,False,TP (True Positive),"Semua 4 langkah perbaikan sesuai Ground Truth, urutan benar, tanpa ID/angka berbeda. Informasi tambahan benar dan tidak mengganggu."
+25,sequential_steps,-,Bagaimana prosedur langkah demi langkah perbaikan Cooling water temperature too high pada AST-COOLTOWER-01?,-,Step 1: Check the cooling tower fan operation. Step 2: Inspect the fill media and clean scaling. Step 3: Verify chemical treatment dosing. Step 4: Monitor the water temperature until it returns to range.,"Berikut prosedur langkah demi langkah perbaikan untuk failure mode **Cooling water temperature too high** pada **AST-COOLTOWER-01** (FMEA_ID: **FMEA-CLT-001**):
+
+**Langkah Perbaikan (Repair Steps):**
+
+1. **Check the cooling tower fan operation**
+   * Periksa operasi/pengoperasian fan cooling tower.
+
+2. **Inspect the fill media and clean scaling**
+   * Inspeksi fill media dan bersihkan kerak/scaling.
+
+3. **Verify chemical treatment dosing**
+   * Verifikasi dosis chemical treatment.
+
+4. **Monitor the water temperature until it returns to range**
+   * Pantau suhu air hingga kembali ke rentang normal.
+
+**Informasi Pendukung:**
+
+* **Failure Mode:** Cooling water temperature too high
+* **Potential Effects:** Inadequate cooling and process temperature deviations (Pendinginan tidak memadai dan penyimpangan suhu proses)
+* **Prevention Controls:** Fan and fill inspection monthly and water treatment dosing (Inspeksi fan dan fill setiap bulan serta dosing water treatment)
+* **Severity:** 5
+* **Occurrence:** 4
+* **Detection:** 3
+* **RPN:** 60
+* **Department:** UTILITIES",True,5,1.0,,False,TP (True Positive),"Semua 4 langkah sesuai Ground Truth, urutan benar, tanpa ID/angka berbeda. Terjemahan dan informasi tambahan benar."
+26,sequential_steps,-,Sebutkan urutan perbaikan lengkap untuk FMEA-CIP-002.,-,"Step 1: Switch to the standby pump and note the failure. Step 2: Isolate and lock out the failed pump. Step 3: Inspect the impeller, seal, and motor bearings. Step 4: Repair or replace the pump and return it to standby.","Berikut adalah **urutan perbaikan lengkap** untuk **FMEA-CIP-002** (**CIP supply pump failure** / kegagalan pompa suplai CIP) pada **Asset_ID: AST-CIP-01**:
+
+**Langkah Perbaikan (Repair Steps):**
+
+1. **Langkah 1:** Switch to the standby pump and note the failure.
+   * (Beralih ke pompa cadangan/standby dan catat kegagalannya.)
+
+2. **Langkah 2:** Isolate and lock out the failed pump.
+   * (Isolasi dan lakukan lock out pada pompa yang gagal.)
+
+3. **Langkah 3:** Inspect the impeller, seal, and motor bearings.
+   * (Periksa impeller, seal, dan bearing motor.)
+
+4. **Langkah 4:** Repair or replace the pump and return it to standby.
+   * (Perbaiki atau ganti pompa, lalu kembalikan ke posisi standby.)
+
+**Ringkasan Informasi Terkait:**
+
+* **Failure Mode:** CIP supply pump failure
+* **Potential Effects:** Incomplete cleaning and delayed start-up (Pembersihan tidak sempurna dan keterlambatan start-up)
+* **Prevention Controls:** Vibration monitoring and spare pump on site (Pemantauan getaran dan pompa cadangan tersedia di lokasi)
+* **Severity:** 6
+* **Occurrence:** 3
+* **Detection:** 3
+* **RPN:** 54
+* **Department:** PRODUCTION",True,5,1.0,,False,TP (True Positive),"Semua 4 langkah perbaikan sesuai Ground Truth, urutan benar, tanpa ID/angka berbeda. Informasi tambahan benar dan tidak mengganggu."
+27,sequential_steps,-,Apa saja langkah-langkah penanganan Fill level sensor drift di AST-FILLER-01?,-,Step 1: Pause filling and tag the affected sensor. Step 2: Calibrate the sensor using a certified reference weight. Step 3: Quarantine product filled since the last good calibration. Step 4: Record calibration results and restart production.,"Berikut adalah langkah-langkah penanganan untuk **Fill level sensor drift** pada **AST-FILLER-01** (FMEA_ID: **FMEA-FIL-003**):
+
+**Informasi Kasus:**
+
+* **Failure Mode:** Fill level sensor drift (Pergeseran sensor level pengisian)
+* **Potential Effects:** Overfill (giveaway) atau underfill (regulatory non-compliance) — *Kelebihan isi (giveaway) atau kekurangan isi (pelanggaran regulasi)*
+* **Severity:** 7
+* **Occurrence:** 4
+* **Detection:** 4
+* **RPN:** 112
+* **Prevention Controls:** Weekly sensor calibration against reference weight — *Kalibrasi sensor mingguan terhadap berat referensi*
+* **Department:** PACKAGING
+
+**Langkah-Langkah Perbaikan (Repair Steps):**
+
+1. **Langkah 1:** Pause filling and tag the affected sensor.
+   * *Hentikan proses pengisian dan tandai sensor yang terdampak.*
+
+2. **Langkah 2:** Calibrate the sensor using a certified reference weight.
+   * *Kalibrasi sensor menggunakan berat referensi yang tersertifikasi.*
+
+3. **Langkah 3:** Quarantine product filled since the last good calibration.
+   * *Karantina produk yang diisi sejak kalibrasi baik terakhir.*
+
+4. **Langkah 4:** Record calibration results and restart production.
+   * *Catat hasil kalibrasi dan mulai kembali produksi.*
+
+Silakan sampaikan jika Anda memerlukan detail tambahan, seperti analisis RPN atau tindakan pencegahan untuk kasus ini.",True,5,1.0,,False,TP (True Positive),"Semua 4 langkah sesuai Ground Truth, urutan benar, tanpa ID/angka berbeda. Informasi tambahan (FMEA_ID, severity, dll.) benar dan tidak mengganggu."
+28,single_step,-,Apa yang harus dilakukan pada Step 3 penanganan FMEA-PWR-001?,-,Step 3 untuk FMEA-PWR-001 adalah: Inspect the auto transfer switch.,"Berdasarkan data FMEA untuk **FMEA-PWR-001** (**AST-GENSET-01**), berikut detail **Langkah 3**:
+
+**Langkah 3: Inspect the auto transfer switch**
+*(Terjemahan: Periksa auto transfer switch / saklar pindah otomatis)*
+
+**Konteks Penanganan Lengkap (FMEA-PWR-001):**
+
+* **Failure Mode:** Generator fails to start on outage *(Generator gagal start saat pemadaman)*
+* **Potential Effects:** Production loss and half-processed batches *(Kehilangan produksi dan batch setengah jadi)*
+* **Severity:** 8
+* **Occurrence:** 3
+* **Detection:** 3
+* **RPN:** 72
+* **Prevention Controls:** Weekly no-load test and battery check *(Uji tanpa beban mingguan dan pengecekan baterai)*
+* **Department:** UTILITIES
+
+**Urutan Lengkap Repair Steps:**
+
+1. Try a manual start and check the fuel level *(Coba start manual dan cek level bahan bakar)*
+2. Test the battery and starter motor *(Uji baterai dan motor starter)*
+3. **Inspect the auto transfer switch** *(Periksa auto transfer switch)*
+4. Perform a load test after repair *(Lakukan load test setelah perbaikan)*
+
+Jadi, pada **Step 3** tindakan yang harus dilakukan adalah **memeriksa auto transfer switch (ATS)** untuk memastikan mekanisme perpindahan daya otomatis dari sumber utama ke generator berfungsi dengan baik.",True,5,1.0,,False,TP (True Positive),"Jawaban bot menyebutkan Step 3 FMEA-PWR-001 dengan benar: 'Inspect the auto transfer switch', sesuai Ground Truth. Informasi tambahan yang diberikan juga benar dan tidak mengubah makna."
+29,single_step,-,Apa langkah pertama (Step 1) saat terjadi Conveyor motor overheating pada AST-CONVEYOR-01?,-,Step 1 untuk FMEA-CNV-002 adalah: Stop the conveyor and let the motor cool.,"Berdasarkan data FMEA untuk **AST-CONVEYOR-01** dengan failure mode **Conveyor motor overheating** (**FMEA-CNV-002**), berikut langkah pertamanya:
+
+**Langkah 1 (Step 1):**
+* **Stop the conveyor and let the motor cool.**
+* Terjemahan: **Hentikan conveyor dan biarkan motor mendingin.**
+
+**Konteks terkait (FMEA-CNV-002):**
+* **Failure Mode:** Conveyor motor overheating
+* **Potential Effects:** Motor burnout and unplanned downtime (Motor terbakar dan downtime tak terencana)
+* **Prevention Controls:** Thermal imaging scan monthly and cooling fan cleaning (Pemindaian thermal imaging bulanan dan pembersihan kipas pendingin)
+* **RPN:** 72 (Severity: 6, Occurrence: 3, Detection: 4)
+* **Department:** PACKAGING
+
+Jika Anda ingin, saya bisa menampilkan **urutan lengkap Langkah 1–4** untuk failure mode ini.",True,5,1.0,,False,TP (True Positive),"Jawaban bot memuat Step 1 yang sama persis dengan Ground Truth, yaitu 'Stop the conveyor and let the motor cool', disertai terjemahan dan konteks tambahan yang benar. Tidak ada ID, angka, atau langkah yang berbeda."
+30,single_step,-,Apa langkah terakhir (Step 4) pada prosedur perbaikan FMEA-LBL-001?,-,Step 4 untuk FMEA-LBL-001 adalah: Inspect 10 labeled units for position and adhesion.,"Berikut langkah terakhir (**Step 4**) pada prosedur perbaikan **FMEA-LBL-001** (**Asset_ID: AST-LABELER-01**):
+
+* **Langkah 4:** **Inspect 10 labeled units for position and adhesion.**
+  * Terjemahan: **Periksa 10 unit berlabel** untuk memastikan **posisi** dan **daya rekat (adhesion)** sudah sesuai.
+
+Sebagai konteks, berikut urutan lengkap prosedur perbaikannya:
+
+1. **Stop the labeler and remove defective labels.** — Hentikan mesin pelabel dan singkirkan label yang cacat.
+2. **Check the glue temperature and roller alignment.** — Periksa suhu lem dan keselarasan roller.
+3. **Replace worn label rollers or wipers if damaged.** — Ganti roller atau wiper label yang aus jika rusak.
+4. **Inspect 10 labeled units for position and adhesion.** — Periksa 10 unit berlabel untuk posisi dan daya rekat.
+
+Catatan terkait **FMEA-LBL-001**:
+* **Failure Mode:** Label skewed or wrinkled (label miring atau berkerut)
+* **RPN:** **40** (Severity: 4, Occurrence: 5, Detection: 2)
+* **Department:** PACKAGING",True,5,1.0,,False,TP (True Positive),"Jawaban bot menyebutkan Step 4 dengan tepat sesuai Ground Truth, yaitu 'Inspect 10 labeled units for position and adhesion.' Informasi tambahan berupa terjemahan, konteks urutan prosedur, dan detail FMEA lainnya benar dan tidak mengubah makna."
+31,single_step,-,Apa yang harus dilakukan pada Step 1 penanganan FMEA-FIL-001?,-,Step 1 untuk FMEA-FIL-001 adalah: Stop the line and switch the machine to MANUAL mode.,"Berdasarkan data FMEA untuk **FMEA-FIL-001** (**Asset_ID: AST-FILLER-01**, Departemen **PACKAGING**), berikut tindakan pada **Langkah 1**:
+
+* **Langkah 1 (Step 1):** **Stop the line and switch the machine to MANUAL mode.**
+  * Terjemahan: **Hentikan jalur produksi (line) dan alihkan mesin ke mode MANUAL.**
+
+Langkah ini merupakan tindakan awal sebelum inspeksi pada **heating element** di **sealing unit** (Langkah 2), pembersihan residu plastik pada **heater seat** (Langkah 3), dan **test-seal 5 sample bottles** sebelum kembali ke mode **AUTO** (Langkah 4).
+
+Konteks terkait untuk FMEA ini:
+* **Failure Mode:** Bottle seal leakage
+* **Potential Effects:** Product contamination and reduced fill volume
+* **RPN:** 96 (Severity: 8, Occurrence: 4, Detection: 3)",True,5,1.0,,False,TP (True Positive),"Jawaban bot menyebutkan Step 1 dengan tepat sesuai Ground Truth, yaitu 'Stop the line and switch the machine to MANUAL mode.' Informasi tambahan yang diberikan benar dan tidak mengubah makna."
+32,single_step,-,Apa langkah pertama (Step 1) saat terjadi Conveyor chain snapped pada AST-CONVEYOR-01?,-,Step 1 untuk FMEA-CNV-001 adalah: Stop the conveyor and apply lockout-tagout.,"Berdasarkan data FMEA untuk **AST-CONVEYOR-01** dengan **FMEA_ID: FMEA-CNV-001** pada mode kegagalan **Conveyor chain snapped** (rantai konveyor putus):
+
+**Langkah Pertama (Step 1):**
+
+* **Stop the conveyor and apply lockout-tagout.**
+  * Terjemahan: **Hentikan konveyor dan terapkan lockout-tagout (LOTO).**
+
+Langkah ini merupakan tindakan awal yang wajib dilakukan sebelum penanganan lebih lanjut, yaitu menghentikan operasi konveyor dan mengunci serta menandai sumber energi agar aman untuk dilakukan perbaikan.
+
+Sebagai gambaran, berikut urutan lengkap perbaikannya:
+
+1. **Stop the conveyor and apply lockout-tagout** — Hentikan konveyor dan terapkan LOTO.
+2. **Remove product from the affected section** — Keluarkan produk dari bagian yang terdampak.
+3. **Replace the broken chain link or the whole chain** — Ganti mata rantai yang putus atau seluruh rantai.
+4. **Adjust tension, lubricate, and run empty before restart** — Setel ketegangan, lumasi, dan jalankan tanpa beban sebelum restart.",True,5,1.0,,False,TP (True Positive),"Jawaban bot menyebutkan Step 1 dengan benar sesuai Ground Truth, yaitu 'Stop the conveyor and apply lockout-tagout', disertai terjemahan dan informasi tambahan yang benar. Tidak ada ID, angka, atau langkah yang berbeda."
+33,single_step,-,Apa langkah terakhir (Step 4) pada prosedur perbaikan FMEA-ROW-001?,-,Step 4 untuk FMEA-ROW-001 adalah: Verify permeate conductivity before resuming use.,"Berikut adalah **langkah terakhir (Step 4)** pada prosedur perbaikan **FMEA-ROW-001** (Asset_ID: **AST-RO-01**):
+
+* **Langkah 4:** *Verify permeate conductivity before resuming use.*
+  * **Terjemahan:** Verifikasi konduktivitas permeate (air hasil) sebelum melanjutkan penggunaan.
+
+**Konteks Singkat FMEA-ROW-001:**
+
+* **Failure Mode:** RO membrane fouling (pengotoran membran RO)
+* **Potential Effects:** Poor water quality and higher conductivity (kualitas air buruk dan konduktivitas lebih tinggi)
+* **RPN:** 96 (Severity: 8 | Occurrence: 4 | Detection: 3)
+* **Department:** UTILITIES
+
+Jika Anda memerlukan **urutan lengkap Langkah 1 s/d 4** atau detail **Prevention Controls**-nya, silakan beri tahu saya.",True,5,1.0,,False,TP (True Positive),"Jawaban bot memuat Step 4 yang sama persis dengan Ground Truth, disertai terjemahan dan konteks tambahan yang benar. Tidak ada ID, angka, atau langkah yang berbeda."
+34,single_step,-,Apa yang harus dilakukan pada Step 1 penanganan FMEA-HOM-001?,-,Step 1 untuk FMEA-HOM-001 adalah: Stop the homogenizer and release system pressure safely.,"Berdasarkan data **FMEA-HOM-001** (Asset **AST-HOMOG-01**), berikut isi **Langkah 1**:
+
+* **Langkah 1:** **Stop the homogenizer and release system pressure safely.**
+  * Terjemahan: **Hentikan homogenizer dan lepaskan tekanan sistem dengan aman.**
+
+Langkah ini adalah tahap awal sebelum masuk ke pemeriksaan komponen pada langkah berikutnya.",True,5,1.0,,False,TP (True Positive),"Jawaban bot memuat Step 1 yang sama persis dengan Ground Truth, disertai terjemahan dan informasi tambahan yang benar. Tidak ada perbedaan ID, angka, atau langkah."
+35,single_step,-,Apa langkah pertama (Step 1) saat terjadi Compressed air pressure drop pada AST-COMPRESSOR-01?,-,Step 1 untuk FMEA-CMP-001 adalah: Alert production and stop pneumatic-dependent machines if needed.,"Berdasarkan data FMEA untuk **AST-COMPRESSOR-01** dengan failure mode **Compressed air pressure drop** (**FMEA-CMP-001**), berikut langkah pertamanya:
+
+**Langkah 1 (Step 1):**
+* **Alert production and stop pneumatic-dependent machines if needed.**
+* *(Terjemahan: Beri peringatan ke bagian produksi dan hentikan mesin-mesin yang bergantung pada sistem pneumatik jika diperlukan.)*
+
+**Konteks Singkat Failure Mode ini:**
+* **FMEA_ID:** FMEA-CMP-001
+* **Asset_ID:** AST-COMPRESSOR-01
+* **Failure Mode:** Compressed air pressure drop *(Penurunan tekanan udara bertekanan)*
+* **Potential Effects:** Pneumatic equipment failure on production lines *(Kegagalan peralatan pneumatik pada lini produksi)*
+* **Severity:** 7 | **Occurrence:** 4 | **Detection:** 2 | **RPN:** 56
+* **Department:** UTILITIES
+
+Jika Anda memerlukan **urutan lengkap Langkah 1 s/d Langkah 4** untuk failure mode ini, silakan beri tahu saya.",True,5,1.0,,False,TP (True Positive),"Jawaban bot menyebutkan langkah pertama yang sama persis dengan Ground Truth, yaitu 'Alert production and stop pneumatic-dependent machines if needed.' Informasi tambahan yang diberikan (terjemahan, konteks FMEA) benar dan tidak mengubah makna. Tidak ada ID, angka, atau langkah yang berbeda."
+36,contextual_followup,-,bagaimana urutan perbaikannya?,Apa dampak potensial dari Case erector fails to form cartons pada AST-CASEPACK-01?,Step 1: Stop the erector and clear misformed cartons. Step 2: Inspect vacuum cups and hoses for leaks. Step 3: Replace worn cups and adjust the magazine guides. Step 4: Run 10 cartons to confirm correct forming.,"Berikut **urutan langkah perbaikan (Repair Steps)** untuk **FMEA-CSE-001** pada asset **AST-CASEPACK-01**:
+
+1. **Langkah 1:** Stop the erector and clear misformed cartons.
+   * Terjemahan: **Hentikan erector dan bersihkan karton yang salah bentuk.**
+
+2. **Langkah 2:** Inspect vacuum cups and hoses for leaks.
+   * Terjemahan: **Periksa vacuum cup dan selang untuk memastikan tidak ada kebocoran.**
+
+3. **Langkah 3:** Replace worn cups and adjust the magazine guides.
+   * Terjemahan: **Ganti vacuum cup yang aus dan sesuaikan pemandu majalah karton (magazine guides).**
+
+4. **Langkah 4:** Run 10 cartons to confirm correct forming.
+   * Terjemahan: **Jalankan 10 karton untuk memastikan pembentukan karton sudah benar.**
+
+**Ringkasan Terkait:**
+* **Failure Mode:** Case erector fails to form cartons
+* **Potential Effects:** Line stoppage and packing delays
+* **Prevention Controls:** Check vacuum cups and carton magazine every shift
+* **Severity:** 5 | **Occurrence:** 5 | **Detection:** 2 | **RPN:** 50
+* **Department:** PACKAGING
+
+Jika Anda mau, saya bisa bantu jelaskan **arti tiap langkah secara teknis** atau **kapan langkah ini sebaiknya dilakukan** berdasarkan kontrol pencegahan yang ada.",True,5,1.0,,False,TP (True Positive),"Bot menyajikan keempat langkah perbaikan sesuai Ground Truth, dengan urutan benar dan terjemahan Indonesia yang akurat. Informasi tambahan terkait FMEA tidak mengubah isi langkah."
+37,contextual_followup,-,berikan urutan langkahnya,Saya butuh informasi FMEA-VIS-001 untuk mesin AST-VISION-01,Step 1: Stop the inspection system and switch to manual inspection. Step 2: Clean the camera lens and check the lighting. Step 3: Reload the reference image and recalibrate. Step 4: Validate with known good and defective samples.,"Berikut urutan langkah perbaikan untuk **FMEA-VIS-001** (Asset_ID: **AST-VISION-01**):
+
+1. **Langkah 1:** Stop the inspection system and switch to manual inspection.
+   *(Hentikan sistem inspeksi dan beralih ke inspeksi manual.)*
+
+2. **Langkah 2:** Clean the camera lens and check the lighting.
+   *(Bersihkan lensa kamera dan periksa pencahayaan.)*
+
+3. **Langkah 3:** Reload the reference image and recalibrate.
+   *(Muat ulang gambar referensi dan lakukan kalibrasi ulang.)*
+
+4. **Langkah 4:** Validate with known good and defective samples.
+   *(Validasi menggunakan sampel yang diketahui bagus dan cacat.)*
+
+Urutan di atas harus dijalankan secara berurutan dari **Langkah 1** hingga **Langkah 4** untuk menangani mode kegagalan **Vision inspection camera misreads** (kamera inspeksi visual salah membaca).
+
+Apakah ada yang ingin Anda tanyakan lebih lanjut terkait langkah ini?",True,5,1.0,,False,TP (True Positive),"Jawaban bot memuat seluruh 4 langkah sesuai Ground Truth, urut, dan menambahkan terjemahan serta konteks yang benar tanpa mengubah data."
+38,contextual_followup,-,"kalau sudah terjadi, apa langkah penanganannya?",Apa tindakan pencegahan untuk Oil carryover into air line di AST-COMPRESSOR-01?,Step 1: Stop use of the affected air line for product contact. Step 2: Replace coalescing filters and check the oil separator. Step 3: Test air quality for oil content. Step 4: Clean the affected downstream equipment before restart.,"Berikut urutan **langkah penanganan (Repair Steps)** untuk **FMEA-CMP-002** — failure mode **Oil carryover into air line** pada **AST-COMPRESSOR-01**:
+
+1. **Stop use of the affected air line for product contact**
+   Hentikan penggunaan jalur udara yang terdampak untuk kontak dengan produk.
+
+2. **Replace coalescing filters and check the oil separator**
+   Ganti coalescing filter dan periksa oil separator (pemisah oli).
+
+3. **Test air quality for oil content**
+   Uji kualitas udara untuk memastikan kandungan oli.
+
+4. **Clean the affected downstream equipment before restart**
+   Bersihkan peralatan hilir (downstream) yang terdampak sebelum memulai ulang (restart).
+
+**Ringkasan Data Terkait:**
+
+* **Asset_ID:** AST-COMPRESSOR-01
+* **FMEA_ID:** FMEA-CMP-002
+* **Failure Mode:** Oil carryover into air line
+* **Potential Effects:** Contamination of product-contact air
+* **Severity:** 9
+* **Occurrence:** 2
+* **Detection:** 4
+* **RPN:** 72
+* **Department:** UTILITIES
+
+Jika Anda memerlukan **tindakan pencegahan (Prevention Controls)** untuk failure mode ini, silakan beri tahu saya.",True,5,1.0,,False,TP (True Positive),"Semua 4 langkah penanganan sesuai Ground Truth, urutan benar, dan informasi tambahan yang diberikan akurat serta tidak bertentangan."
+39,contextual_followup,-,langkah pertamanya apa?,Berapa RPN untuk FMEA-PLT-001?,Step 1 untuk FMEA-PLT-001 adalah: Stop the palletizer and remove unstable pallets.,"Langkah pertama untuk **FMEA-PLT-001** (Asset_ID: **AST-PALLETIZER-01**) adalah:
+
+**Langkah 1:** Stop the palletizer and remove unstable pallets.
+*(Hentikan palletizer dan singkirkan palet yang tidak stabil.)*
+
+Berikut urutan lengkap langkah perbaikannya:
+
+1. **Langkah 1:** Stop the palletizer and remove unstable pallets.
+   *(Hentikan palletizer dan singkirkan palet yang tidak stabil.)*
+
+2. **Langkah 2:** Verify the stacking pattern against the recipe.
+   *(Verifikasi pola penumpukan terhadap resep/recipe.)*
+
+3. **Langkah 3:** Adjust the gripper alignment and layer sheet placement.
+   *(Sesuaikan penyelarasan gripper dan penempatan layer sheet.)*
+
+4. **Langkah 4:** Check wrap tension and re-wrap affected pallets.
+   *(Periksa tegangan wrap dan bungkus ulang palet yang terdampak.)*
+
+**Failure Mode:** Unstable pallet pattern (Pola palet tidak stabil)
+**RPN:** 72",True,5,1.0,,False,TP (True Positive),"Jawaban bot menyebutkan langkah pertama FMEA-PLT-001 dengan benar dan lengkap sesuai Ground Truth, serta informasi tambahan yang diberikan benar dan tidak mengubah makna."
+40,contextual_followup,-,lalu apa tindakan pencegahannya?,Bagaimana prosedur perbaikan Cold storage temperature excursion pada AST-COLDSTORE-01?,Prevention control untuk Cold storage temperature excursion (FMEA-WHS-001) adalah: Continuous temperature logging with alarm notification.,"Berikut tindakan pencegahan (*Prevention Controls*) untuk **FMEA-WHS-001** pada **AST-COLDSTORE-01**:
+
+**Tindakan Pencegahan:**
+
+* **Continuous temperature logging with alarm notification**
+  *(Pencatatan suhu berkelanjutan dengan notifikasi alarm)*
+
+**Ringkasan Konteks FMEA:**
+
+* **Failure Mode:** Cold storage temperature excursion (Penyimpangan suhu cold storage)
+* **Potential Effects:** Spoilage of temperature-sensitive materials (Kerusakan material yang sensitif terhadap suhu)
+* **Severity:** 9
+* **Occurrence:** 3
+* **Detection:** 2
+* **RPN:** 54
+* **Department:** WAREHOUSE
+
+Tindakan pencegahan ini berfungsi sebagai kontrol utama untuk mendeteksi dini penyimpangan suhu melalui pemantauan berkelanjutan, sehingga alarm dapat segera memicu tindakan korektif sebelum material sensitif mengalami kerusakan.
+
+Silakan informasikan jika Anda memerlukan analisis lebih lanjut, misalnya evaluasi RPN atau langkah perbaikan terkait.",True,5,1.0,,False,TP (True Positive),"Jawaban bot menyebutkan prevention control yang sama persis dengan Ground Truth (Continuous temperature logging with alarm notification) untuk FMEA-WHS-001, disertai terjemahan dan konteks tambahan yang benar. Tidak ada ID, angka, atau langkah yang berbeda."
+41,contextual_followup,-,bagaimana urutan perbaikannya?,Apa dampak potensial dari Incomplete ingredient dispersion pada AST-MIXER-01?,Step 1: Halt the transfer of the batch to filling. Step 2: Extend mixing time per the SOP and re-sample. Step 3: Check agitator speed and blade condition. Step 4: Release the batch only after lab results meet specification.,"**Urutan Perbaikan — FMEA-MIX-002 (AST-MIXER-01)**
+
+Berikut langkah perbaikan sesuai urutan resmi dari database maintenance:
+
+1. **Langkah 1:** Hentikan transfer batch ke proses filling.
+   * *(Halt the transfer of the batch to filling.)*
+
+2. **Langkah 2:** Perpanjang waktu pencampuran sesuai SOP, lalu lakukan pengambilan sampel ulang.
+   * *(Extend mixing time per the SOP and re-sample.)*
+
+3. **Langkah 3:** Periksa kecepatan agitator dan kondisi blade (bilah pengaduk).
+   * *(Check agitator speed and blade condition.)*
+
+4. **Langkah 4:** Lepaskan/rilis batch hanya setelah hasil laboratorium memenuhi spesifikasi.
+   * *(Release the batch only after lab results meet specification.)*
+
+**Catatan Konteks:**
+* **Failure Mode:** Incomplete ingredient dispersion (Dispersi bahan tidak sempurna)
+* **Potential Effects:** Batch out of specification (viscosity or concentration)
+* **RPN:** 84 (Severity 7 | Occurrence 4 | Detection 3)
+* **Department:** PRODUCTION
+
+Langkah-langkah di atas harus dijalankan **secara berurutan** — jangan melepas batch ke filling sebelum hasil lab dinyatakan sesuai spesifikasi.",True,5,1.0,,False,TP (True Positive),"Jawaban memuat seluruh 4 langkah perbaikan sesuai urutan Ground Truth, dengan terjemahan dan informasi tambahan yang benar."
+42,contextual_followup,-,berikan urutan langkahnya,Saya butuh informasi FMEA-CHK-002 untuk mesin AST-CHECKWEIGH-01,Step 1: Stop the line and hold product produced since the last test. Step 2: Inspect the pneumatic actuator and air supply. Step 3: Replace the faulty solenoid valve or cylinder. Step 4: Run a reject test with a test pack before restart.,"Berikut urutan langkah perbaikan untuk **FMEA-CHK-002** (Asset_ID: **AST-CHECKWEIGH-01**):
+
+**Failure Mode:** Reject gate fails to actuate *(Gerbang reject gagal beroperasi)*
+
+**Urutan Langkah Perbaikan:**
+
+1. **Langkah 1:** Stop the line and hold product produced since the last test.
+   *(Hentikan lini dan tahan produk yang diproduksi sejak pengujian terakhir.)*
+
+2. **Langkah 2:** Inspect the pneumatic actuator and air supply.
+   *(Periksa aktuator pneumatik dan pasokan udara.)*
+
+3. **Langkah 3:** Replace the faulty solenoid valve or cylinder.
+   *(Ganti solenoid valve atau silinder yang rusak.)*
+
+4. **Langkah 4:** Run a reject test with a test pack before restart.
+   *(Jalankan uji reject dengan test pack sebelum memulai ulang.)*
+
+Langkah-langkah di atas harus dijalankan secara berurutan dari **Langkah 1 hingga Langkah 4** untuk memastikan gerbang reject berfungsi kembali dengan baik sebelum lini dijalankan ulang.
+
+Jika Anda memerlukan informasi lain seperti kontrol pencegahan atau nilai RPN, silakan beri tahu saya.",True,5,1.0,,False,TP (True Positive),"Jawaban bot memuat seluruh 4 langkah sesuai Ground Truth, urut, tanpa perubahan ID/angka/langkah, serta terjemahan dan informasi tambahan yang benar."
+43,contextual_followup,-,"kalau sudah terjadi, apa langkah penanganannya?",Apa tindakan pencegahan untuk Conveyor chain snapped di AST-CONVEYOR-01?,"Step 1: Stop the conveyor and apply lockout-tagout. Step 2: Remove product from the affected section. Step 3: Replace the broken chain link or the whole chain. Step 4: Adjust tension, lubricate, and run empty before restart.","Berikut langkah penanganan (**Repair Steps**) untuk **FMEA-CNV-001** — **Conveyor chain snapped** pada **AST-CONVEYOR-01**:
+
+1. **Stop the conveyor and apply lockout-tagout**
+   * Hentikan conveyor dan lakukan **lockout-tagout (LOTO)**.
+
+2. **Remove product from the affected section**
+   * Keluarkan produk dari area yang terdampak.
+
+3. **Replace the broken chain link or the whole chain**
+   * Ganti **mata rantai yang putus** atau **seluruh rantai**.
+
+4. **Adjust tension, lubricate, and run empty before restart**
+   * Setel **ketegangan (tension)**, lakukan **pelumasan**, dan **jalankan conveyor tanpa beban (run empty)** sebelum dihidupkan kembali.
+
+**Ringkasan Data:**
+
+* **Asset_ID:** AST-CONVEYOR-01
+* **FMEA_ID:** FMEA-CNV-001
+* **Failure Mode:** Conveyor chain snapped (Rantai conveyor putus)
+* **Potential Effects:** Line stoppage and product backlog (Hentinya lini produksi dan penumpukan produk)
+* **RPN:** 72 (Severity: 6 | Occurrence: 4 | Detection: 3)
+* **Department:** PACKAGING",True,5,1.0,,False,TP (True Positive),"Semua 4 langkah penanganan sesuai Ground Truth, urutan benar, tanpa ID/angka berbeda. Terjemahan dan informasi tambahan benar."
+44,alias_typo,-,Apa mode kegagalan dan dampak potensial pada mesin AST-FIL-01?,-,ID 'AST-FIL-01' tidak terdaftar di database. Jawaban yang benar menyatakan bahwa ID tersebut tidak ditemukan dan menyarankan/mengonfirmasi mesin terdekat AST-FILLER-01. Boleh menampilkan datanya asalkan jelas dinyatakan bahwa ID yang ditanyakan tidak persis ada. Data AST-FILLER-01: Bottle seal leakage (FMEA-FIL-001): Product contamination and reduced fill volume; Fill level sensor drift (FMEA-FIL-003): Overfill (giveaway) or underfill (regulatory non-compliance); Clogged filling nozzle (FMEA-FIL-002): Non-uniform bottle fill volume.,"Berdasarkan database maintenance, **AST-FIL-01** tidak ditemukan secara persis. Namun, terdapat **Asset_ID** yang sangat mirip, yaitu **AST-FILLER-01**. Berikut data untuk **AST-FILLER-01**:
+
+---
+
+**FMEA-FIL-001**
+
+* **Failure Mode (Mode Kegagalan):** Bottle seal leakage (Kebocoran segel botol)
+* **Potential Effects (Dampak Potensial):** Product contamination and reduced fill volume (Kontaminasi produk dan berkurangnya volume isi)
+* **Severity:** 8
+* **Occurrence:** 4
+* **Detection:** 3
+* **RPN:** 96
+* **Department:** PACKAGING
+
+---
+
+**FMEA-FIL-002**
+
+* **Failure Mode (Mode Kegagalan):** Clogged filling nozzle (Nozel pengisian tersumbat)
+* **Potential Effects (Dampak Potensial):** Non-uniform bottle fill volume (Volume isi botol tidak seragam)
+* **Severity:** 6
+* **Occurrence:** 5
+* **Detection:** 2
+* **RPN:** 60
+* **Department:** PACKAGING
+
+---
+
+Apakah Anda ingin saya tampilkan **langkah perbaikan (Repair Steps)** untuk salah satu FMEA di atas?",True,5,1.0,,True,PASS,"Bot menyatakan ID AST-FIL-01 tidak ditemukan secara persis, mengonfirmasi mesin terdekat AST-FILLER-01, dan menampilkan data FMEA yang relevan dengan jelas sebagai data mesin terdekat, sesuai Ground Truth."
+45,alias_typo,-,Apa mode kegagalan dan dampak potensial pada mesin AST-CSE-01?,-,ID 'AST-CSE-01' tidak terdaftar di database. Jawaban yang benar menyatakan bahwa ID tersebut tidak ditemukan dan menyarankan/mengonfirmasi mesin terdekat AST-CASEPACK-01. Boleh menampilkan datanya asalkan jelas dinyatakan bahwa ID yang ditanyakan tidak persis ada. Data AST-CASEPACK-01: Wrong pack count in case (FMEA-CSE-002): Customer complaints and shortage claims; Case erector fails to form cartons (FMEA-CSE-001): Line stoppage and packing delays.,"Data untuk **'AST-CSE-01'** tidak ditemukan dalam database maintenance.
+
+Namun, saya menemukan **Asset_ID** yang sangat mirip, yaitu:
+
+* **AST-CASEPACK-01** (Case Packer / Mesin Pengemas Karton)
+
+Berikut data yang tersedia untuk **AST-CASEPACK-01**:
+
+**1. FMEA-CSE-001**
+* **Failure Mode (Mode Kegagalan):** Case erector fails to form cartons *(Mesin pembentuk karton gagal membentuk karton)*
+* **Potential Effects (Dampak Potensial):** Line stoppage and packing delays *(Lini produksi berhenti dan keterlambatan pengemasan)*
+* **Severity:** 5 | **Occurrence:** 5 | **Detection:** 2 | **RPN:** 50
+* **Department:** PACKAGING
+
+**2. FMEA-CSE-002**
+* **Failure Mode (Mode Kegagalan):** Wrong pack count in case *(Jumlah isi dalam karton salah)*
+* **Potential Effects (Dampak Potensial):** Customer complaints and shortage claims *(Keluhan pelanggan dan klaim kekurangan barang)*
+* **Severity:** 7 | **Occurrence:** 3 | **Detection:** 4 | **RPN:** 84
+* **Department:** PACKAGING
+
+Apakah **AST-CASEPACK-01** yang Anda maksud? Jika ya, silakan beri tahu saya jika Anda ingin melihat **langkah perbaikan (Repair Steps)** atau detail lainnya.",True,5,1.0,,True,PASS,"Bot menyatakan ID 'AST-CSE-01' tidak ditemukan, menyarankan mesin terdekat AST-CASEPACK-01, dan menampilkan datanya dengan jelas sebagai ID yang mirip, sesuai Ground Truth."
+46,alias_typo,-,Apa mode kegagalan dan dampak potensial pada mesin AST-ROW-01?,-,ID 'AST-ROW-01' tidak terdaftar di database. Jawaban yang benar menyatakan bahwa ID tersebut tidak ditemukan dan menyarankan/mengonfirmasi mesin terdekat AST-RO-01. Boleh menampilkan datanya asalkan jelas dinyatakan bahwa ID yang ditanyakan tidak persis ada. Data AST-RO-01: RO membrane fouling (FMEA-ROW-001): Poor water quality and higher conductivity.,"Data untuk **'AST-ROW-01'** tidak ditemukan dalam database maintenance.
+
+Namun, terdapat **Asset_ID yang sangat mirip** dalam database, kemungkinan yang Anda maksud adalah:
+
+* **AST-RO-01** (FMEA_ID: **FMEA-ROW-001**) — Departemen: **UTILITIES**
+
+Berikut data untuk **AST-RO-01**:
+
+**Mode Kegagalan (Failure Mode):**
+* **RO membrane fouling** (Penyumbatan/pengotoran membran RO)
+
+**Dampak Potensial (Potential Effects):**
+* **Poor water quality and higher conductivity** (Kualitas air buruk dan konduktivitas lebih tinggi)
+
+**Kontrol Pencegahan (Prevention Controls):**
+* **Pre-filter change and daily conductivity logging** (Penggantian pre-filter dan pencatatan konduktivitas harian)
+
+**Parameter Risiko:**
+* **Severity:** 8
+* **Occurrence:** 4
+* **Detection:** 3
+* **RPN:** 96
+
+Jika yang Anda maksud memang **AST-RO-01**, silakan konfirmasi — saya dapat menampilkan **langkah perbaikan (Repair Steps)** lengkapnya. Jika mesin yang Anda tanyakan benar-benar **AST-ROW-01**, maka data tersebut tidak tersedia di database.",True,5,1.0,,True,PASS,"Bot menyatakan ID 'AST-ROW-01' tidak ditemukan, menyarankan mesin terdekat AST-RO-01, dan menampilkan datanya dengan jelas sebagai ID yang mirip, sesuai rubrik."
+47,alias_typo,-,Apa mode kegagalan dan dampak potensial pada mesin AST-BLR-01?,-,ID 'AST-BLR-01' tidak terdaftar di database. Jawaban yang benar menyatakan bahwa ID tersebut tidak ditemukan dan menyarankan/mengonfirmasi mesin terdekat AST-BOILER-01. Boleh menampilkan datanya asalkan jelas dinyatakan bahwa ID yang ditanyakan tidak persis ada. Data AST-BOILER-01: Low boiler water level (FMEA-BLR-001): Boiler shutdown or tube damage; Steam trap failure (FMEA-BLR-002): Steam loss and inconsistent process temperature.,"Berdasarkan database maintenance, berikut informasi untuk mesin **AST-BOILER-01**:
+
+Terdapat **2 mode kegagalan (failure mode)** yang terdaftar:
+
+**1. Low boiler water level** (Level air boiler rendah) — FMEA_ID: **FMEA-BLR-001**
+
+* **Dampak Potensial (Potential Effects):** Boiler shutdown or tube damage (Matikan boiler atau kerusakan pada tube)
+* **Severity:** 9
+* **Occurrence:** 2
+* **Detection:** 3
+* **RPN:** 54
+* **Prevention Controls:** Level probe test every shift and blowdown schedule (Uji level probe setiap shift dan jadwal blowdown)
+
+**2. Steam trap failure** (Kegagalan steam trap) — FMEA_ID: **FMEA-BLR-002**
+
+* **Dampak Potensial (Potential Effects):** Steam loss and inconsistent process temperature (Kehilangan steam dan suhu proses tidak konsisten)
+* **Severity:** 5
+* **Occurrence:** 5
+* **Detection:** 4
+* **RPN:** 100
+* **Prevention Controls:** Steam trap survey every quarter (Survei steam trap setiap kuartal)
+
+Catatan: **FMEA-BLR-002** memiliki **RPN tertinggi (100)**, sehingga mode kegagalan ini perlu mendapat prioritas perhatian lebih dibandingkan FMEA-BLR-001.
+
+Apakah Anda ingin saya tampilkan **urutan langkah perbaikan (repair steps)** untuk salah satu mode kegagalan tersebut?",False,1,1.0,judge=salah tapi semua keyword ada,False,FAIL,Bot langsung menjawab seolah-olah ID 'AST-BLR-01' ada dan menampilkan data AST-BOILER-01 tanpa menyatakan bahwa ID yang ditanyakan tidak ditemukan/tidak persis ada. Rubrik mensyaratkan pernyataan eksplisit bahwa ID tidak terdaftar dan menyarankan mesin terdekat.
+48,out_of_domain,-,Berapa standar suhu oli pada mesin Robot Palletizer R-900?,-,Data untuk 'Berapa standar suhu oli pada mesin Robot Palletizer R-900?' tidak ditemukan dalam database maintenance.,"Data untuk **'Berapa standar suhu oli pada mesin Robot Palletizer R-900?'** tidak ditemukan dalam database maintenance.
+
+Silakan periksa kembali **FMEA_ID**, **Asset_ID**, atau nama mesin yang ingin ditanyakan. Jika Anda memiliki ID yang mendekati (misalnya singkatan atau kemungkinan salah ketik), saya dapat membantu mencarikan data terdekat yang tersedia.",True,5,,,True,TN (True Negative),"Bot menyatakan data tidak ditemukan dalam database dan tidak mengarang jawaban, sesuai dengan Ground Truth."
+49,out_of_domain,-,Bagaimana cara mengganti bearing pada mesin Blower B-500?,-,Data untuk 'Bagaimana cara mengganti bearing pada mesin Blower B-500?' tidak ditemukan dalam database maintenance.,"Data untuk **""Bagaimana cara mengganti bearing pada mesin Blower B-500?""** tidak ditemukan dalam database maintenance.
+
+Silakan periksa kembali **FMEA_ID** atau **Asset_ID** yang sesuai, atau sebutkan nama mesin/komponen lain yang terdaftar agar saya dapat membantu mencarikan informasi mode kegagalan, dampak, RPN, maupun langkah perbaikannya.",True,5,,,True,TN (True Negative),"Bot menyatakan data tidak ditemukan dalam database dan tidak mengarang jawaban, sesuai dengan Ground Truth."
+50,out_of_domain,-,Siapa nama supervisor maintenance shift 3?,-,Data untuk 'Siapa nama supervisor maintenance shift 3?' tidak ditemukan dalam database maintenance.,"Data untuk **'Siapa nama supervisor maintenance shift 3?'** tidak ditemukan dalam database maintenance.
+
+Informasi mengenai **nama personel** atau **struktur supervisor per shift** tidak tersedia pada sumber data yang terhubung (Data FMEA).
+
+Jika Anda membutuhkan, saya dapat membantu untuk hal-hal berikut:
+
+* Pencarian **FMEA_ID** atau **Asset_ID** tertentu
+* Informasi **mode kegagalan (failure mode)** dan **dampaknya (effect)**
+* Nilai **RPN** (Severity, Occurrence, Detection)
+* **Tindakan pencegahan (prevention action)** dan **langkah perbaikan (repair steps)**
+* Evaluasi kesesuaian **parameter** (suhu, tekanan, dll.) terhadap standar di database
+
+Silakan sebutkan **FMEA_ID**, **Asset_ID**, atau **nama komponen/mesin** yang ingin Anda telusuri.",True,5,,,True,TN (True Negative),"Bot menyatakan data tidak ditemukan dan tidak mengarang jawaban, sesuai Ground Truth."
+51,out_of_domain,-,Berapa harga sparepart heater element AST-FILLER-01?,-,Data untuk 'Berapa harga sparepart heater element AST-FILLER-01?' tidak ditemukan dalam database maintenance.,"Data untuk **'Berapa harga sparepart heater element AST-FILLER-01?'** tidak ditemukan dalam database maintenance.
+
+Informasi **harga sparepart** memang tidak tersedia dalam sumber data yang saya akses (Data FMEA). Data yang tersedia hanya mencakup hal-hal teknis seperti:
+
+* **FMEA_ID / Asset_ID**
+* **Mode kegagalan (Failure Mode)** & **dampak (Effect)**
+* **Tindakan pencegahan (Prevention Action)**
+* **Nilai RPN** (Severity, Occurrence, Detection)
+* **Langkah perbaikan (Repair Steps)**
+
+Jika Anda membutuhkan informasi **harga sparepart**, silakan merujuk ke sistem **procurement / ERP** atau menghubungi bagian **purchasing** terkait.
+
+Namun, jika Anda ingin mengetahui **mode kegagalan, dampak, atau langkah perbaikan** untuk komponen **heater element** pada asset **AST-FILLER-01**, silakan sampaikan — saya akan bantu telusuri dari data FMEA yang tersedia.",True,5,,,True,TN (True Negative),"Bot menyatakan data harga tidak ditemukan dalam database, tidak mengarang harga, dan menjelaskan keterbatasan data dengan tepat."
+52,out_of_domain,-,Apa langkah perbaikan untuk FMEA-CHK-009?,-,Data untuk 'Apa langkah perbaikan untuk FMEA-CHK-009?' tidak ditemukan dalam database maintenance.,"Data untuk **FMEA-CHK-009** tidak ditemukan dalam database maintenance.
+
+Sebagai informasi, FMEA_ID yang tersedia untuk asset **AST-CHECKWEIGH-01** adalah:
+
+* **FMEA-CHK-001** — Failure Mode: *Checkweigher calibration drift*
+* **FMEA-CHK-002** — Failure Mode: *Reject gate fails to actuate*
+
+Jika Anda ingin, saya bisa menampilkan langkah perbaikan untuk salah satu FMEA_ID di atas. Mohon konfirmasi ID yang dimaksud.",True,5,,,True,TN (True Negative),"Bot menyatakan data FMEA-CHK-009 tidak ditemukan dan tidak mengarang langkah perbaikan; hanya menyebut ID lain yang tersedia sebagai informasi, sesuai rubrik."
+53,out_of_domain,-,Berapa RPN untuk FMEA-CIP-009?,-,Data untuk 'Berapa RPN untuk FMEA-CIP-009?' tidak ditemukan dalam database maintenance.,"Data untuk **FMEA-CIP-009** tidak ditemukan dalam database maintenance.
+
+Sebagai informasi, ID yang tersedia di database untuk asset **AST-CIP-01** adalah:
+
+* **FMEA-CIP-001** — Failure Mode: *Caustic concentration out of range* (Konsentrasi kaustik di luar rentang) — **RPN: 81**
+* **FMEA-CIP-002** — Failure Mode: *CIP supply pump failure* (Kegagalan pompa suplai CIP) — **RPN: 54**
+
+Apakah Anda ingin menanyakan salah satu dari ID tersebut, atau mungkin ada kesalahan pengetikan pada ID yang Anda maksud?",True,5,,,True,TN (True Negative),"Bot menyatakan data FMEA-CIP-009 tidak ditemukan dan tidak mengarang RPN; menyebut ID lain yang tersedia dengan jelas sebagai informasi alternatif, bukan jawaban untuk pertanyaan."
+54,greeting,-,apa yang bisa anda bantu?,-,"Memberikan informasi bantuan umum mengenai pencarian FMEA, pengecekan mode kegagalan, dan prosedur perbaikan mesin secara ramah dan terstruktur tanpa pesan data tidak ditemukan.","Halo! Saya siap membantu Anda terkait data maintenance dan FMEA. Berikut yang bisa saya bantu:
+
+* **Pencarian Data FMEA**
+  * Mencari informasi berdasarkan **FMEA_ID** atau **Asset_ID** tertentu.
+
+* **Analisis Mode Kegagalan & Dampak**
+  * Menjelaskan **failure mode** (mode kegagalan), penyebab, dan **dampaknya** terhadap proses atau mesin.
+
+* **Tindakan Pencegahan**
+  * Menampilkan **tindakan pencegahan (prevention action)** yang direkomendasikan untuk tiap mode kegagalan.
+
+* **Perhitungan & Evaluasi RPN**
+  * Menampilkan nilai **RPN (Risk Priority Number)** beserta komponennya (Severity, Occurrence, Detection).
+
+* **Langkah Perbaikan (Repair Steps)**
+  * Memberikan **urutan langkah perbaikan** secara runtut dari Langkah 1 hingga selesai.
+
+* **Evaluasi Parameter Teknis**
+  * Membandingkan nilai parameter yang Anda tanyakan (suhu, tekanan, dll.) dengan **rentang standar** di database.
+
+Silakan sebutkan **FMEA_ID**, **Asset_ID**, atau komponen/masalah teknis yang ingin Anda tanyakan, dan saya akan bantu telusuri datanya.",True,5,,,False,PASS,"Jawaban ramah, menjelaskan kemampuan bot terkait FMEA, mode kegagalan, pencegahan, dan langkah perbaikan, serta tidak menyatakan data tidak ditemukan atau menyebut penanda internal."
+55,greeting,-,halo selamat pagi bot,-,Menyapa pengguna secara ramah dan profesional serta menyebutkan capability bot.,"Selamat pagi! 👋
+
+Saya adalah asisten data maintenance dan konsultan teknis lapangan untuk industri FMCG. Saya siap membantu Anda terkait data **FMEA** dan pemeliharaan mesin.
+
+Berikut yang bisa saya bantu:
+
+* **Pencarian Data FMEA**
+  * Menelusuri data berdasarkan **FMEA_ID** atau **Asset_ID**.
+
+* **Mode Kegagalan & Dampak**
+  * Menjelaskan **failure mode** (mode kegagalan) beserta **efek/dampaknya** terhadap proses.
+
+* **Tindakan Pencegahan**
+  * Menampilkan **recommended actions** (tindakan yang disarankan) untuk mencegah kegagalan.
+
+* **Analisis RPN**
+  * Menghitung dan menjelaskan nilai **RPN** (Risk Priority Number) berdasarkan **Severity**, **Occurrence**, dan **Detection**.
+
+* **Langkah Perbaikan**
+  * Memberikan **urutan langkah perbaikan** (Repair Steps) secara runtut dari Langkah 1 hingga selesai.
+
+* **Evaluasi Parameter**
+  * Membandingkan nilai parameter (suhu, tekanan, dll.) yang Anda tanyakan dengan **standar resmi** di database.
+
+Silakan sebutkan **FMEA_ID**, **Asset_ID**, atau komponen/mesin yang ingin Anda tanyakan. 😊",True,5,,,False,PASS,"Jawaban ramah dan profesional, menjelaskan kemampuan bot terkait FMEA, mode kegagalan, pencegahan, RPN, langkah perbaikan, dan evaluasi parameter, tanpa menyatakan data tidak ditemukan atau menyebut penanda internal."
+56,greeting,-,siapa kamu?,-,Memperkenalkan diri sebagai asisten data maintenance/FMEA secara ramah dan menyebutkan capability bot tanpa pesan data tidak ditemukan.,"Halo! Saya adalah **asisten data maintenance** dan **konsultan teknis lapangan** untuk industri **FMCG**. Saya terhubung langsung ke sumber data **FMEA** (Failure Mode and Effects Analysis) untuk membantu Anda menganalisis risiko kegagalan mesin dan komponen.
+
+Berikut yang bisa saya bantu:
+
+* **Pencarian Data FMEA**
+  * Menelusuri data berdasarkan **FMEA_ID**, **Asset_ID**, nama komponen, atau mode kegagalan.
+
+* **Analisis Mode Kegagalan & Dampak**
+  * Menjelaskan **failure mode**, penyebab (cause), dan **dampak (effect)** dari setiap kegagalan.
+
+* **Tindakan Pencegahan (Prevention Actions)**
+  * Menampilkan langkah pencegahan yang direkomendasikan untuk tiap mode kegagalan.
+
+* **Perhitungan & Evaluasi RPN**
+  * Menyajikan nilai **Severity (S)**, **Occurrence (O)**, **Detection (D)**, dan **RPN** untuk prioritas perbaikan.
+
+* **Langkah Perbaikan (Repair Steps)**
+  * Memberikan urutan langkah perbaikan (Step 1 s/d selesai) secara runtut sesuai data.
+
+* **Evaluasi Parameter Teknis**
+  * Membandingkan nilai suhu, tekanan, atau parameter lain yang Anda tanyakan dengan **rentang standar** di database.
+
+Silakan sebutkan **FMEA_ID**, **Asset_ID**, atau komponen/masalah teknis yang ingin Anda analisis, dan saya akan bantu telusuri datanya. 🛠️",True,5,,,False,PASS,"Jawaban ramah, memperkenalkan diri sebagai asisten data maintenance/FMEA, menjelaskan kemampuan bot secara lengkap (pencarian FMEA, mode kegagalan, pencegahan, RPN, langkah perbaikan), serta tidak menyatakan data tidak ditemukan atau menyebut penanda internal."

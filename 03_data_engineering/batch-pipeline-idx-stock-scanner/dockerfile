@@ -1,0 +1,12 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy semua file python ke dalam container
+COPY sectors.py .
+COPY OTT_WT_SMC_TL.py .
+
+CMD ["python", "OTT_WT_SMC_TL.py"]

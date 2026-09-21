@@ -1,0 +1,10 @@
+discord.py
+langchain
+langchain-community
+langchain-google-vertexai
+chromadb
+pypdf
+python-dotenv
+openai
+google-cloud-discoveryengine
+google-cloud-firestore

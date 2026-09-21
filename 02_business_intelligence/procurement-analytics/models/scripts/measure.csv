@@ -1,0 +1,477 @@
+Table_Name,MEASURE_NAME,EXPRESSION
+"Measure","Total Spend","SUM('Data'[Line Total Inc Tax])"
+"Measure","Total Budget","SUM('Data'[Budget Total])"
+"Measure","Total Savings","SUM('Data'[Savings Amount])"
+"Measure","Savings %","DIVIDE([Total Savings], [Total Budget], 0)"
+"Measure","Total PO Lines","COUNTROWS('Data')"
+"Measure","Maverick Spend","CALCULATE([Total Spend], 'Data'[Maverick Spend] = ""Yes"")"
+"Measure","Maverick Spend %","DIVIDE([Maverick Spend], [Total Spend], 0)"
+"Measure","Spend on Preferred Suppliers","CALCULATE([Total Spend], 'Data'[Preferred Supplier] = ""Yes"")"
+"Measure","Single Source Spend","CALCULATE([Total Spend], 'Data'[Single Source Flag] = ""Yes"")"
+"Measure","OTIF Rate %","VAR OnTimeLines = CALCULATE([Total PO Lines], 'Data'[On Time Delivery] = ""Yes"")
+RETURN DIVIDE(OnTimeLines, [Total PO Lines], 0)"
+"Measure","Avg Lead Time (Days)","AVERAGE('Data'[Lead Time Days])"
+"Measure","Avg Days Late","AVERAGE('Data'[Days Late])"
+"Measure","Overdue Invoices Spend","CALCULATE([Total Spend], 'Data'[Invoice Status] = ""Overdue"")"
+"Measure","Disputed Invoices Spend","CALCULATE([Total Spend], 'Data'[Invoice Status] = ""Disputed"")"
+"Measure","3-Way Match %","VAR Match3Way = CALCULATE([Total PO Lines], 'Data'[Invoice Match Type] = ""3-Way Match"")
+RETURN DIVIDE(Match3Way, [Total PO Lines], 0)"
+"Measure","Total_Budget_Growth%_Colour","VAR _CurrentYear = [Total Budget]
+VAR _PreviousYear = CALCULATE(
+    [Total Budget],
+    SAMEPERIODLASTYEAR('Calendar'[Date]))
+VAR _Growth = 
+DIVIDE(
+    _CurrentYear - _PreviousYear, 
+    _PreviousYear)
+RETURN
+SWITCH(
+    TRUE(),
+    _Growth > 0, ""#01cf11"",
+    _Growth < 0, ""#d65279"",
+    ""Grey""
+)"
+"Measure","Total_Budget_PY","VAR _LY = 
+CALCULATE(
+    [Total Budget],
+    SAMEPERIODLASTYEAR('Calendar'[Date]))
+RETURN
+"" vs "" & FORMAT(_LY, ""$#,##0,,.00 M"")  & "" Last Year"""
+"Measure","Total_Budget_Growth%","VAR _CurrentYear = [Total Budget]
+VAR _PreviousYear = CALCULATE(
+    [Total Budget],
+    SAMEPERIODLASTYEAR('Calendar'[Date]))
+VAR _Growth = 
+DIVIDE(
+    _CurrentYear - _PreviousYear, 
+    _PreviousYear
+)
+VAR _GrowthFormat = FORMAT(_Growth, ""+0.00%; -0.00%; 0.00%"")
+
+RETURN
+IF(_Growth > 0, 
+    UNICHAR(129157) & "" "" & _GrowthFormat, 
+    UNICHAR(129158) & "" "" & _GrowthFormat
+)"
+"Measure","Total_Spend_Growth%","VAR _CurrentYear = [Total Spend]
+VAR _PreviousYear = CALCULATE(
+    [Total Spend],
+    SAMEPERIODLASTYEAR('Calendar'[Date]))
+VAR _Growth = 
+DIVIDE(
+    _CurrentYear - _PreviousYear, 
+    _PreviousYear)
+VAR _GrowthFormat = FORMAT(_Growth, ""+0.00%; -0.00%; 0.00%"")
+
+RETURN
+IF(_Growth > 0, 
+UNICHAR(129157) & "" "" & _GrowthFormat, UNICHAR(129158) & "" "" & _GrowthFormat)"
+"Measure","Total_Spend_PY","VAR _LY = 
+CALCULATE(
+    [Total Spend],
+    SAMEPERIODLASTYEAR('Calendar'[Date]))
+RETURN
+"" vs "" & FORMAT(_LY, ""$#,##0,,.00 M"")  & "" Last Year"""
+"Measure","Total_Spend_Growth%_Colour","VAR _CurrentYear = [Total Spend]
+VAR _PreviousYear = CALCULATE(
+    [Total Spend],
+    SAMEPERIODLASTYEAR('Calendar'[Date]))
+VAR _Growth = 
+DIVIDE(
+    _CurrentYear - _PreviousYear, 
+    _PreviousYear)
+RETURN
+SWITCH(
+    TRUE(),
+    _Growth > 0, ""#01cf11"",
+    _Growth < 0, ""#d65279"",
+    ""Grey""
+)"
+"Measure","Total_Savings_Growth%","VAR _CurrentYear = [Total Savings]
+VAR _PreviousYear = CALCULATE(
+    [Total Savings],
+    SAMEPERIODLASTYEAR('Calendar'[Date]))
+VAR _Growth = 
+DIVIDE(
+    _CurrentYear - _PreviousYear, 
+    _PreviousYear
+)
+VAR _GrowthFormat = FORMAT(_Growth, ""+0.00%; -0.00%; 0.00%"")
+
+RETURN
+IF(_Growth > 0, 
+    UNICHAR(129157) & "" "" & _GrowthFormat, 
+    UNICHAR(129158) & "" "" & _GrowthFormat
+)"
+"Measure","Total_Savings_PY","VAR _LY = 
+CALCULATE(
+    [Total Savings],
+    SAMEPERIODLASTYEAR('Calendar'[Date]))
+RETURN
+"" vs "" & FORMAT(_LY, ""$#,##0,,.00 M"")  & "" Last Year"""
+"Measure","Total_Savings_Growth%_Colour","VAR _CurrentYear = [Total Savings]
+VAR _PreviousYear = CALCULATE(
+    [Total Savings],
+    SAMEPERIODLASTYEAR('Calendar'[Date]))
+VAR _Growth = 
+DIVIDE(
+    _CurrentYear - _PreviousYear, 
+    _PreviousYear)
+RETURN
+SWITCH(
+    TRUE(),
+    _Growth > 0, ""#01cf11"",
+    _Growth < 0, ""#d65279"",
+    ""Grey""
+)"
+"Measure","Total_PO_Growth%","VAR _CurrentYear = [Total PO Lines]
+VAR _PreviousYear = CALCULATE(
+    [Total PO Lines],
+    SAMEPERIODLASTYEAR('Calendar'[Date]))
+VAR _Growth = 
+DIVIDE(
+    _CurrentYear - _PreviousYear, 
+    _PreviousYear
+)
+VAR _GrowthFormat = FORMAT(_Growth, ""+0.00%; -0.00%; 0.00%"")
+
+RETURN
+IF(_Growth > 0, 
+    UNICHAR(129157) & "" "" & _GrowthFormat, 
+    UNICHAR(129158) & "" "" & _GrowthFormat
+)"
+"Measure","Total_PO_Growth%_Colour","VAR _CurrentYear = [Total PO Lines]
+VAR _PreviousYear = CALCULATE(
+    [Total PO Lines],
+    SAMEPERIODLASTYEAR('Calendar'[Date]))
+VAR _Growth = 
+DIVIDE(
+    _CurrentYear - _PreviousYear, 
+    _PreviousYear)
+RETURN
+SWITCH(
+    TRUE(),
+    _Growth > 0, ""#01cf11"",
+    _Growth < 0, ""#d65279"",
+    ""Grey""
+)"
+"Measure","Total_PO_PY","VAR _LY = 
+CALCULATE(
+    [Total PO Lines],
+    SAMEPERIODLASTYEAR('Calendar'[Date]))
+RETURN
+"" vs "" & FORMAT(_LY, ""#,##0"")  & "" Last Year"""
+"Measure","Total Supplier","DISTINCTCOUNT('Data'[Supplier ID])"
+"Measure","Total_Supplier_Growth%","VAR _CurrentYear = [Total Supplier]
+VAR _PreviousYear = CALCULATE(
+    [Total Supplier],
+    SAMEPERIODLASTYEAR('Calendar'[Date]))
+VAR _Growth = 
+DIVIDE(
+    _CurrentYear - _PreviousYear, 
+    _PreviousYear
+)
+VAR _GrowthFormat = FORMAT(_Growth, ""+0.00%; -0.00%; 0.00%"")
+
+RETURN
+IF(_Growth > 0, 
+    UNICHAR(129157) & "" "" & _GrowthFormat, 
+    UNICHAR(129158) & "" "" & _GrowthFormat
+)"
+"Measure","Total_Supplier_Growth%_Colour","VAR _CurrentYear = [Total Supplier]
+VAR _PreviousYear = CALCULATE(
+    [Total Supplier],
+    SAMEPERIODLASTYEAR('Calendar'[Date]))
+VAR _Growth = 
+DIVIDE(
+    _CurrentYear - _PreviousYear, 
+    _PreviousYear)
+RETURN
+SWITCH(
+    TRUE(),
+    _Growth < 0, ""#01cf11"",
+    _Growth > 0, ""#d65279"",
+    ""Grey""
+)"
+"Measure","Total_Supplier_PY","VAR _LY = 
+CALCULATE(
+    [Total Supplier],
+    SAMEPERIODLASTYEAR('Calendar'[Date]))
+RETURN
+"" vs "" & FORMAT(_LY, ""#,##0"")  & "" Last Year"""
+"Measure","Avg ESG Score","AVERAGE('Data'[Supplier ESG Score])"
+"Measure","Avg_ESG_Score_Growth%","VAR _CurrentYear = [Avg ESG Score]
+VAR _PreviousYear = CALCULATE(
+    [Avg ESG Score],
+    SAMEPERIODLASTYEAR('Calendar'[Date]))
+VAR _Growth = 
+DIVIDE(
+    _CurrentYear - _PreviousYear, 
+    _PreviousYear
+)
+VAR _GrowthFormat = FORMAT(_Growth, ""+0.00%; -0.00%; 0.00%"")
+
+RETURN
+IF(_Growth > 0, 
+    UNICHAR(129157) & "" "" & _GrowthFormat, 
+    UNICHAR(129158) & "" "" & _GrowthFormat
+)"
+"Measure","Avg_ESG_Score_Growth%_Colour","VAR _CurrentYear = [Avg ESG Score]
+VAR _PreviousYear = CALCULATE(
+    [Avg ESG Score],
+    SAMEPERIODLASTYEAR('Calendar'[Date]))
+VAR _Growth = 
+DIVIDE(
+    _CurrentYear - _PreviousYear, 
+    _PreviousYear)
+RETURN
+SWITCH(
+    TRUE(),
+    _Growth > 0, ""#01cf11"",
+    _Growth < 0, ""#d65279"",
+    ""Grey""
+)"
+"Measure","Avg_ESG_Score_PY","VAR _LY = 
+CALCULATE(
+    [Avg ESG Score],
+    SAMEPERIODLASTYEAR('Calendar'[Date]))
+RETURN
+"" vs "" & FORMAT(_LY, ""0.00"")  & "" Last Year"""
+"Measure","% Single Source Spend","DIVIDE(
+    CALCULATE([Total Spend], 'Data'[Single Source Flag] = ""Yes""), 
+    [Total Spend], 0
+)"
+"Measure","Single_Source_Spend_Growth%","VAR _CurrentYear = [% Single Source Spend]
+VAR _PreviousYear = CALCULATE(
+    [% Single Source Spend],
+    SAMEPERIODLASTYEAR('Calendar'[Date]))
+VAR _Growth = 
+DIVIDE(
+    _CurrentYear - _PreviousYear, 
+    _PreviousYear
+)
+VAR _GrowthFormat = FORMAT(_Growth, ""+0.00%; -0.00%; 0.00%"")
+
+RETURN
+IF(_Growth > 0, 
+    UNICHAR(129157) & "" "" & _GrowthFormat, 
+    UNICHAR(129158) & "" "" & _GrowthFormat
+)"
+"Measure","Single_Source_Spend_Growth%_Colour","VAR _CurrentYear = [% Single Source Spend]
+VAR _PreviousYear = CALCULATE(
+    [% Single Source Spend],
+    SAMEPERIODLASTYEAR('Calendar'[Date]))
+VAR _Growth = 
+DIVIDE(
+    _CurrentYear - _PreviousYear, 
+    _PreviousYear)
+RETURN
+SWITCH(
+    TRUE(),
+    _Growth > 0, ""#01cf11"",
+    _Growth < 0, ""#d65279"",
+    ""Grey""
+)"
+"Measure","Single_Source_Spend_PY","VAR _LY = 
+CALCULATE(
+    [% Single Source Spend],
+    SAMEPERIODLASTYEAR('Calendar'[Date]))
+RETURN
+"" vs "" & FORMAT(_LY, ""0.00%"")  & "" Last Year"""
+"Measure","% Local Sourcing","DIVIDE(
+    CALCULATE([Total Spend], 'Data'[Local International] = ""Local""), 
+    [Total Spend], 0
+)"
+"Measure","Local_Spend_Growth%","VAR _CurrentYear = [% Local Sourcing]
+VAR _PreviousYear = CALCULATE(
+    [% Local Sourcing],
+    SAMEPERIODLASTYEAR('Calendar'[Date]))
+VAR _Growth = 
+DIVIDE(
+    _CurrentYear - _PreviousYear, 
+    _PreviousYear
+)
+VAR _GrowthFormat = FORMAT(_Growth, ""+0.00%; -0.00%; 0.00%"")
+
+RETURN
+IF(_Growth > 0, 
+    UNICHAR(129157) & "" "" & _GrowthFormat, 
+    UNICHAR(129158) & "" "" & _GrowthFormat
+)"
+"Measure","Local_Spend_Growth%_Colour","VAR _CurrentYear = [% Local Sourcing]
+VAR _PreviousYear = CALCULATE(
+    [% Local Sourcing],
+    SAMEPERIODLASTYEAR('Calendar'[Date]))
+VAR _Growth = 
+DIVIDE(
+    _CurrentYear - _PreviousYear, 
+    _PreviousYear)
+RETURN
+SWITCH(
+    TRUE(),
+    _Growth > 0, ""#01cf11"",
+    _Growth < 0, ""#d65279"",
+    ""Grey""
+)"
+"Measure","Local_Spend_PY","VAR _LY = 
+CALCULATE(
+    [% Local Sourcing],
+    SAMEPERIODLASTYEAR('Calendar'[Date]))
+RETURN
+"" vs "" & FORMAT(_LY, ""0.00%"")  & "" Last Year"""
+"Measure","% 3-Way Match Rate","DIVIDE(
+CALCULATE([Total PO Lines], 'Data'[Invoice Match Type] = ""3-Way Match""),
+[Total PO Lines], 0
+)"
+"Measure","3_Way_Match_Growth%","VAR _CurrentYear = [% 3-Way Match Rate]
+VAR _PreviousYear = CALCULATE(
+    [% 3-Way Match Rate],
+    SAMEPERIODLASTYEAR('Calendar'[Date]))
+VAR _Growth = 
+DIVIDE(
+    _CurrentYear - _PreviousYear, 
+    _PreviousYear
+)
+VAR _GrowthFormat = FORMAT(_Growth, ""+0.00%; -0.00%; 0.00%"")
+
+RETURN
+IF(_Growth > 0, 
+    UNICHAR(129157) & "" "" & _GrowthFormat, 
+    UNICHAR(129158) & "" "" & _GrowthFormat
+)"
+"Measure","3_Way_Match_Growth%_Colour","VAR _CurrentYear = [% Local Sourcing]
+VAR _PreviousYear = CALCULATE(
+    [% Local Sourcing],
+    SAMEPERIODLASTYEAR('Calendar'[Date]))
+VAR _Growth = 
+DIVIDE(
+    _CurrentYear - _PreviousYear, 
+    _PreviousYear)
+RETURN
+SWITCH(
+    TRUE(),
+    _Growth > 0, ""#01cf11"",
+    _Growth < 0, ""#d65279"",
+    ""Grey""
+)"
+"Measure","3_Way_Match_PY","VAR _LY = 
+CALCULATE(
+    [% 3-Way Match Rate],
+    SAMEPERIODLASTYEAR('Calendar'[Date]))
+RETURN
+"" vs "" & FORMAT(_LY, ""0.00%"")  & "" Last Year"""
+"Measure","% Spend Under Contract","DIVIDE(
+    CALCULATE([Total Spend], 'Data'[Contract Type] <> ""Spot""), 
+    [Total Spend], 0
+)"
+"Measure","Spend_Under_Contract_Growth%","VAR _CurrentYear = [% Spend Under Contract]
+VAR _PreviousYear = CALCULATE(
+    [% Spend Under Contract],
+    SAMEPERIODLASTYEAR('Calendar'[Date]))
+VAR _Growth = 
+DIVIDE(
+    _CurrentYear - _PreviousYear, 
+    _PreviousYear
+)
+VAR _GrowthFormat = FORMAT(_Growth, ""+0.00%; -0.00%; 0.00%"")
+
+RETURN
+IF(_Growth > 0, 
+    UNICHAR(129157) & "" "" & _GrowthFormat, 
+    UNICHAR(129158) & "" "" & _GrowthFormat
+)"
+"Measure","Spend_Under_Contract_Growth%_Colour","VAR _CurrentYear = [% Spend Under Contract]
+VAR _PreviousYear = CALCULATE(
+    [% Spend Under Contract],
+    SAMEPERIODLASTYEAR('Calendar'[Date]))
+VAR _Growth = 
+DIVIDE(
+    _CurrentYear - _PreviousYear, 
+    _PreviousYear)
+RETURN
+SWITCH(
+    TRUE(),
+    _Growth > 0, ""#01cf11"",
+    _Growth < 0, ""#d65279"",
+    ""Grey""
+)"
+"Measure","Spend_Under_Contract_PY","VAR _LY = 
+CALCULATE(
+    [% Spend Under Contract],
+    SAMEPERIODLASTYEAR('Calendar'[Date]))
+RETURN
+"" vs "" & FORMAT(_LY, ""0.00%"")  & "" Last Year"""
+"Measure","Maverick_Spend_Growth%","VAR _CurrentYear = [Maverick Spend %]
+VAR _PreviousYear = CALCULATE(
+    [Maverick Spend %],
+    SAMEPERIODLASTYEAR('Calendar'[Date]))
+VAR _Growth = 
+DIVIDE(
+    _CurrentYear - _PreviousYear, 
+    _PreviousYear
+)
+VAR _GrowthFormat = FORMAT(_Growth, ""+0.00%; -0.00%; 0.00%"")
+
+RETURN
+IF(_Growth > 0, 
+    UNICHAR(129157) & "" "" & _GrowthFormat, 
+    UNICHAR(129158) & "" "" & _GrowthFormat
+)"
+"Measure","Maverick_Spend_Growth%_Colour","VAR _CurrentYear = [Maverick Spend %]
+VAR _PreviousYear = CALCULATE(
+    [Maverick Spend %],
+    SAMEPERIODLASTYEAR('Calendar'[Date]))
+VAR _Growth = 
+DIVIDE(
+    _CurrentYear - _PreviousYear, 
+    _PreviousYear)
+RETURN
+SWITCH(
+    TRUE(),
+    _Growth < 0, ""#01cf11"",
+    _Growth > 0, ""#d65279"",
+    ""Grey""
+)"
+"Measure","Maverick_Spend_PY","VAR _LY = 
+CALCULATE(
+    [Maverick Spend %],
+    SAMEPERIODLASTYEAR('Calendar'[Date]))
+RETURN
+"" vs "" & FORMAT(_LY, ""0.00%"")  & "" Last Year"""
+"Measure","OTIF_Growth%","VAR _CurrentYear = [OTIF Rate %]
+VAR _PreviousYear = CALCULATE(
+    [OTIF Rate %],
+    SAMEPERIODLASTYEAR('Calendar'[Date]))
+VAR _Growth = 
+DIVIDE(
+    _CurrentYear - _PreviousYear, 
+    _PreviousYear
+)
+VAR _GrowthFormat = FORMAT(_Growth, ""+0.00%; -0.00%; 0.00%"")
+
+RETURN
+IF(_Growth > 0, 
+    UNICHAR(129157) & "" "" & _GrowthFormat, 
+    UNICHAR(129158) & "" "" & _GrowthFormat
+)"
+"Measure","OTIF_Growth%_Colour","VAR _CurrentYear = [OTIF Rate %]
+VAR _PreviousYear = CALCULATE(
+    [OTIF Rate %],
+    SAMEPERIODLASTYEAR('Calendar'[Date]))
+VAR _Growth = 
+DIVIDE(
+    _CurrentYear - _PreviousYear, 
+    _PreviousYear)
+RETURN
+SWITCH(
+    TRUE(),
+    _Growth > 0, ""#01cf11"",
+    _Growth < 0, ""#d65279"",
+    ""Grey""
+)"
+"Measure","OTIF_Rate_PY","VAR _LY = 
+CALCULATE(
+    [OTIF Rate %],
+    SAMEPERIODLASTYEAR('Calendar'[Date]))
+RETURN
+"" vs "" & FORMAT(_LY, ""0.00%"")  & "" Last Year"""
