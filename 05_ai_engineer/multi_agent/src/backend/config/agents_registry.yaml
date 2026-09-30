@@ -1,0 +1,48 @@
+# Agents Registry: metadata setiap sub-agent
+# Setiap agent punya domain, data store, prompt, dan keyword untuk routing.
+
+agents:
+  fmea_agent:
+    domain: maintenance
+    description: "Jawab pertanyaan tentang FMEA, failure mode, RPN, langkah perbaikan, asset maintenance"
+    data_store_ids: [fmea-data_1789894369425]
+    system_prompt_file: prompts/fmea_system.txt
+    keywords: [fmea, maintenance, mesin, asset, failure, rpn, perbaikan, ast-, pencegahan, corrective]
+    temperature: 0.0
+    max_context_chunks: 3
+
+  hr_agent:
+    domain: hr
+    description: "Jawab pertanyaan tentang karyawan, cuti, gaji, payroll, KPI, rekrutmen"
+    data_store_ids: [hr-data]
+    system_prompt_file: prompts/hr_system.txt
+    keywords: [karyawan, cuti, gaji, payroll, employee, leave, kpi, rekrutmen, hr, sdm]
+    temperature: 0.0
+    max_context_chunks: 3
+
+  finance_agent:
+    domain: finance
+    description: "Jawab pertanyaan tentang invoice, budget, AR/AP, pajak, laporan keuangan"
+    data_store_ids: [finance-data]
+    system_prompt_file: prompts/finance_system.txt
+    keywords: [invoice, budget, ar, ap, pajak, tax, laporan keuangan, finance, ar/ap]
+    temperature: 0.0
+    max_context_chunks: 3
+
+  production_agent:
+    domain: production
+    description: "Jawab pertanyaan tentang jadwal produksi, output, downtime, OEE, batch"
+    data_store_ids: [production-data]
+    system_prompt_file: prompts/production_system.txt
+    keywords: [produksi, jadwal, output, downtime, oee, batch, shift, line, production]
+    temperature: 0.0
+    max_context_chunks: 3
+
+  sales_agent:
+    domain: sales
+    description: "Jawab pertanyaan tentang customer, order, pipeline, revenue, CRM"
+    data_store_ids: [crm-data]
+    system_prompt_file: prompts/sales_system.txt
+    keywords: [customer, order, pipeline, revenue, crm, sales, penjualan, leads]
+    temperature: 0.0
+    max_context_chunks: 3

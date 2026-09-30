@@ -1,0 +1,7 @@
+README.md
+SeedDummy.js
+*.md
+*.txt
+.git/
+.gitignore
+node_modules/

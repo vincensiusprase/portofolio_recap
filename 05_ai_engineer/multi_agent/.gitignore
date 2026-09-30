@@ -1,0 +1,13 @@
+# Environment Variables
+.env
+.env.*
+!.env.example
+
+# Service Account & Secret Keys
+*.json
+!package.json
+!appsscript.json
+
+# Virtual Environment & Cache
+venv/
+__pycache__/

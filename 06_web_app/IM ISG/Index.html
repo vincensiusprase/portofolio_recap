@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Inventory Management - SG</title>
+
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <!-- Select2 -->
+  <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+  <!-- DataTables (Bootstrap5) -->
+  <link href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+
+  <style>
+    :root { --sg-navy:#1f3a5f; --sg-navy-d:#162a45; --sg-accent:#2f6fb0; }
+    body { background:#f4f6f9; font-size:.9rem; }
+    /* ---- Login ---- */
+    #loginScreen { min-height:100vh; display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,var(--sg-navy),var(--sg-navy-d)); }
+    #loginScreen .card { width:380px; max-width:92vw; border:0; box-shadow:0 12px 40px rgba(0,0,0,.3); }
+    /* ---- Shell ---- */
+    #sidebar { background:var(--sg-navy); height:100vh; width:260px; position:fixed; top:0; left:0; display:flex; flex-direction:column; overflow:hidden; transition:transform .25s; z-index:1040; }
+    #sidebar .brand { flex:0 0 auto; text-align:center; padding:18px 12px; border-bottom:1px solid rgba(255,255,255,.12); }
+    #menu { flex:1 1 auto; overflow-y:auto; padding-bottom:24px; }
+    #sidebar .brand img { max-height:54px; background:#fff; border-radius:8px; padding:4px; }
+    #sidebar .brand .company { color:#fff; font-weight:700; margin-top:8px; letter-spacing:.5px; }
+    #sidebar .brand .app { color:#9fc1e6; font-size:.72rem; }
+    #sidebar .nav-section { color:#7f9dc0; font-size:.68rem; text-transform:uppercase; letter-spacing:1px; padding:14px 18px 4px; }
+    #sidebar .nav-link { color:#cfe0f2; padding:9px 18px; border-left:3px solid transparent; cursor:pointer; }
+    #sidebar .nav-link:hover { background:rgba(255,255,255,.06); }
+    #sidebar .nav-link.active { background:var(--sg-navy-d); border-left-color:var(--sg-accent); color:#fff; font-weight:600; }
+    #main { margin-left:260px; padding:18px 22px; }
+    #topbar { background:#fff; border-radius:10px; padding:10px 16px; margin-bottom:16px; display:flex; align-items:center; justify-content:space-between; box-shadow:0 1px 4px rgba(0,0,0,.06); }
+    .kpi-card { border:0; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,.06); }
+    .kpi-card .kpi-val { font-size:1.6rem; font-weight:700; color:var(--sg-navy); }
+    .kpi-card .kpi-lbl { font-size:.72rem; color:#6c757d; text-transform:uppercase; letter-spacing:.5px; }
+    .card-pane { border:0; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,.06); }
+    /* Highlight baris (sesuai SRS) */
+    .row-empty>td { background-color:#ffc2d1 !important; }
+    .row-red>td   { background-color:#ffc2d1 !important; }
+    .row-yellow>td{ background-color:#fff3cd !important; }
+    .row-green>td { background-color:#d1e7dd !important; }
+    .row-under>td { background-color:#ffe5b4 !important; }
+    .row-out   { color:#6c757d; font-style:italic; }
+    .table td,.table th { vertical-align:middle; white-space:nowrap; }
+    .select2-container { width:100% !important; }
+    @media (max-width:768px){
+      #sidebar { transform:translateX(-100%); }
+      #sidebar.show { transform:translateX(0); }
+      #main { margin-left:0; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ========================= LOGIN ========================= -->
+<div id="loginScreen">
+  <div class="card">
+    <div class="card-body p-4 text-center">
+      <img id="loginLogo" src="" alt="logo" style="max-height:60px" class="mb-2">
+      <h5 class="fw-bold mb-0" id="loginCompany">Super Glass</h5>
+      <div class="text-muted small mb-3" id="loginApp">Inventory Management - SG</div>
+      <div id="loginAlert"></div>
+      <div class="mb-2 text-start">
+        <label class="form-label small">Username</label>
+        <input id="loginUser" class="form-control" autocomplete="username">
+      </div>
+      <div class="mb-3 text-start">
+        <label class="form-label small">Password</label>
+        <input id="loginPass" type="password" class="form-control" autocomplete="current-password">
+      </div>
+      <button id="loginBtn" class="btn btn-primary w-100" style="background:var(--sg-navy);border:0">
+        <span id="loginSpin" class="spinner-border spinner-border-sm d-none"></span> Masuk
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ========================= APP SHELL ========================= -->
+<div id="app" class="d-none">
+  <nav id="sidebar">
+    <div class="brand">
+      <img id="sideLogo" src="" alt="logo">
+      <div class="company" id="sideCompany">Super Glass</div>
+      <div class="app" id="sideApp">Inventory Management - SG</div>
+    </div>
+    <div id="menu"></div>
+  </nav>
+
+  <div id="main">
+    <div id="topbar">
+      <div>
+        <button class="btn btn-sm btn-outline-secondary d-md-none me-2" onclick="document.getElementById('sidebar').classList.toggle('show')"><i class="bi bi-list"></i></button>
+        <span class="fw-semibold" id="pageTitle">Dashboard</span>
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <span class="badge text-bg-light"><i class="bi bi-person-circle"></i> <span id="who"></span></span>
+        <button class="btn btn-sm btn-outline-danger" onclick="doLogout()"><i class="bi bi-box-arrow-right"></i></button>
+      </div>
+    </div>
+
+    <!-- area notifikasi global (alert sukses/gagal) -->
+    <div id="toastZone" style="position:fixed;top:16px;right:16px;z-index:2000;min-width:300px"></div>
+
+    <div id="content"></div>
+  </div>
+</div>
+
+<!-- JS libs -->
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.8/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<script>
+/* =====================================================================
+   Helper: bungkus google.script.run jadi Promise
+   ===================================================================== */
+function gas(fn, ...args){
+  return new Promise((resolve,reject)=>{
+    google.script.run
+      .withSuccessHandler(resolve)
+      .withFailureHandler(err=>reject(err))[fn](...args);
+  });
+}
+
+/* ===================== STATE GLOBAL ===================== */
+const STATE = {
+  token: localStorage.getItem('sg_token') || '',
+  profile: null,
+  master: null,
+  cache: {}      // cache data sheet sesi ini (kurangi panggilan backend)
+};
+
+/* ===================== TOAST / ALERT ===================== */
+function toast(message, type){
+  type = type || 'success';
+  const id = 't'+Date.now();
+  const colors = {success:'success', error:'danger', warning:'warning', info:'primary'};
+  const el = document.createElement('div');
+  el.className = 'toast align-items-center text-bg-'+(colors[type]||'secondary')+' border-0 show mb-2';
+  el.innerHTML = '<div class="d-flex"><div class="toast-body">'+message+'</div>'+
+    '<button class="btn-close btn-close-white me-2 m-auto" onclick="this.closest(\'.toast\').remove()"></button></div>';
+  document.getElementById('toastZone').appendChild(el);
+  setTimeout(()=>{ if(el.parentNode) el.remove(); }, 6000);
+}
+
+/* =====================================================================
+   AUTENTIKASI
+   ===================================================================== */
+document.getElementById('loginBtn').addEventListener('click', doLogin);
+document.getElementById('loginPass').addEventListener('keypress', e=>{ if(e.key==='Enter') doLogin(); });
+
+function doLogin(){
+  const u = document.getElementById('loginUser').value;
+  const p = document.getElementById('loginPass').value;
+  document.getElementById('loginSpin').classList.remove('d-none');
+  gas('login', u, p).then(res=>{
+    document.getElementById('loginSpin').classList.add('d-none');
+    if(!res.ok){ document.getElementById('loginAlert').innerHTML =
+        '<div class="alert alert-danger py-2 small">'+res.message+'</div>'; return; }
+    STATE.token = res.token; STATE.profile = res.profile;
+    localStorage.setItem('sg_token', res.token);
+    startApp();
+  }).catch(e=>{
+    document.getElementById('loginSpin').classList.add('d-none');
+    document.getElementById('loginAlert').innerHTML = '<div class="alert alert-danger py-2 small">'+e.message+'</div>';
+  });
+}
+
+function doLogout(){
+  gas('logout', STATE.token).finally(()=>{
+    localStorage.removeItem('sg_token');
+    location.reload();
+  });
+}
+
+/* Saat halaman dimuat / refresh: pakai token tersimpan agar tak perlu login ulang */
+window.addEventListener('load', ()=>{
+  gas('getAppConfig').then(cfg=>{
+    ['loginLogo','sideLogo'].forEach(id=>document.getElementById(id).src=cfg.logoUrl);
+    ['loginCompany','sideCompany'].forEach(id=>document.getElementById(id).textContent=cfg.companyName);
+    ['loginApp','sideApp'].forEach(id=>document.getElementById(id).textContent=cfg.appName);
+  });
+  if(STATE.token){
+    gas('validateSession', STATE.token).then(res=>{
+      if(res.ok){ STATE.profile=res.profile; startApp(); }
+    });
+  }
+});
+
+/* =====================================================================
+   MENU & ROUTER  (visibilitas menu berdasarkan role)
+   ===================================================================== */
+const MENU = [
+  {section:'Dashboard'},
+  {id:'dash-kaca',   icon:'speedometer2', label:'Dashboard Kaca'},
+  {id:'inv-kaca',    icon:'box-seam',     label:'Inventory Kaca'},
+  {id:'lot',         icon:'hourglass-split', label:'Lot Number Details'},
+  {id:'ksj-kaca',    icon:'arrow-left-right', label:'Kontrol SJ Kaca'},
+  {id:'dash-pallet', icon:'speedometer2', label:'Dashboard Pallet'},
+  {id:'inv-pallet',  icon:'stack',        label:'Inventory Pallet'},
+  {id:'ksj-pallet',  icon:'arrow-left-right', label:'Kontrol SJ Pallet'},
+  {id:'track-pallet',icon:'geo-alt',      label:'Tracking Nomer Pallet'},
+  {id:'hasil-so',    icon:'clipboard-data', label:'Hasil Stock Opname'},
+  {section:'Transaksi'},
+  {id:'form-kaca-in', icon:'box-arrow-in-down', label:'Masuk Kaca'},
+  {id:'form-kaca-out',icon:'box-arrow-up',      label:'Keluar Kaca'},
+  {id:'form-pallet-in', icon:'box-arrow-in-down', label:'Masuk Pallet'},
+  {id:'form-pallet-out',icon:'box-arrow-up',      label:'Keluar Pallet'},
+  {section:'Riwayat'},
+  {id:'hist-kaca',   icon:'clock-history', label:'Riwayat Transaksi Kaca'},
+  {id:'hist-pallet', icon:'clock-history', label:'Riwayat Transaksi Pallet'}
+];
+
+/* Role akses:
+   - FULL_ROLES (Admin, Management, Gudang) -> semua menu.
+   - Finance & PPIC -> HANYA menu di VIEWER_MENUS. */
+const FULL_ROLES = ['Admin','Management','Warehouse'];
+const VIEWER_MENUS = ['dash-kaca','dash-pallet','lot'];
+
+function canSee(item){
+  if(!item.id) return false;                          // section header ditangani buildMenu
+  if(FULL_ROLES.indexOf(STATE.profile.role) !== -1) return true;
+  return VIEWER_MENUS.indexOf(item.id) !== -1;        // Finance/PPIC dibatasi
+}
+
+function linkHtml(item){
+  return '<a class="nav-link" data-page="'+item.id+'" onclick="route(\''+item.id+'\')">'+
+         '<i class="bi bi-'+item.icon+' me-2"></i>'+item.label+'</a>';
+}
+
+/* Section hanya ditampilkan bila ada minimal satu menu di dalamnya yang boleh diakses. */
+function buildMenu(){
+  const box = document.getElementById('menu'); box.innerHTML='';
+  let section=null, html='', has=false;
+  const flush=()=>{ if(section && has) box.insertAdjacentHTML('beforeend','<div class="nav-section">'+section+'</div>'+html); };
+  MENU.forEach(item=>{
+    if(item.section){ flush(); section=item.section; html=''; has=false; }
+    else if(canSee(item)){ html+=linkHtml(item); has=true; }
+  });
+  flush();
+}
+
+function startApp(){
+  document.getElementById('loginScreen').classList.add('d-none');
+  document.getElementById('app').classList.remove('d-none');
+  document.getElementById('who').textContent = STATE.profile.username+' ('+STATE.profile.role+')';
+  buildMenu();
+  // Ambil masterdata sekali untuk seluruh form & dropdown
+  gas('getMasterdata', STATE.token).then(raw=>{ const m=(typeof raw==='string')?JSON.parse(raw):raw; STATE.master = (m&&m.ok)? m : null; });
+  route('dash-kaca');
+}
+
+function route(pageId){
+  document.querySelectorAll('#sidebar .nav-link').forEach(a=>a.classList.toggle('active', a.dataset.page===pageId));
+  document.getElementById('sidebar').classList.remove('show');
+  const item = MENU.find(m=>m.id===pageId);
+  document.getElementById('pageTitle').textContent = item? item.label : '';
+  // Guard: tolak akses langsung ke halaman form bagi viewer
+  if(item && item.id && !canSee(item)){ toast('Anda tidak punya akses ke halaman ini.','error'); return; }
+  PAGES[pageId] ? PAGES[pageId]() : (document.getElementById('content').innerHTML='<div class="alert alert-warning">Halaman belum tersedia.</div>');
+}
+
+/* =====================================================================
+   UTIL DATA
+   ===================================================================== */
+function loadSheet(name){
+  if(STATE.cache[name]) return Promise.resolve(STATE.cache[name]);
+  return gas('getSheetData', STATE.token, name).then(raw=>{
+    const res = (typeof raw==='string') ? JSON.parse(raw) : raw;   // backend kirim JSON string
+    if(!res) throw new Error('Server tidak mengembalikan data (null). Coba muat ulang halaman.');
+    if(!res.ok) throw new Error(res.message);
+    STATE.cache[name] = res; return res;
+  });
+}
+function num(v){ const n=Number(v); return isFinite(n)?n:0; }
+// Format nilai pecahan (mis. 0.0364) menjadi persen tampilan (mis. "3.64%").
+function pct(v){ if(v===''||v===null||v===undefined) return ''; const n=Number(v); if(!isFinite(n)) return esc(v); return (n*100).toFixed(2)+'%'; }
+function loading(){ document.getElementById('content').innerHTML =
+  '<div class="text-center py-5"><div class="spinner-border text-primary"></div><div class="mt-2 text-muted">Memuat data...</div></div>'; }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function asDate(v){ if(!v) return null; const d=new Date(v); return isNaN(d)?null:d; }
+function fmtDate(v) { 
+  const d = asDate(v); 
+  if (!d) return (v || '');  
+  // Menghitung selisih menit antara zona waktu lokal pengguna dan UTC
+  const timezoneOffset = d.getTimezoneOffset() * 60000; 
+  // Memanipulasi objek tanggal secara virtual agar sejajar dengan lokal
+  const localDate = new Date(d.getTime() - timezoneOffset);
+  // Sekarang aman untuk menggunakan toISOString
+  return localDate.toISOString().slice(0, 10); 
+}
+function monthsBetween(a,b){ if(!a||!b) return 0; return (b.getFullYear()-a.getFullYear())*12 + (b.getMonth()-a.getMonth()); }
+
+/* Membangun blok slicer + filter generik. cfg.slicers = [{id,label,col,type}] */
+function applySlicers(rows, slicers){
+  return rows.filter(r=>{
+    return slicers.every(s=>{
+      const val = document.getElementById(s.id) ? document.getElementById(s.id).value : '';
+      if(!val) return true;
+      if(s.type==='dateMax'){ const d=asDate(r[s.col]); const c=asDate(val); return !d || !c || d<=c; }
+      if(s.type==='contains') return String(r[s.col]).toLowerCase().includes(val.toLowerCase());
+      if(s.type==='searchAll'){ const q=val.toLowerCase(); return Object.keys(r).some(k=>String(r[k]).toLowerCase().includes(q)); }
+      return String(r[s.col]).trim()===String(val).trim();
+    });
+  });
+}
+function uniqueVals(rows,col){ const s={}; rows.forEach(r=>{const v=String(r[col]||'').trim(); if(v)s[v]=1;}); return Object.keys(s).sort(); }
+
+/* Render generik: tabel + slicer. Dipakai banyak halaman read-only.
+   cfg = {sheet, columns:[{key,label}], slicers:[{label,col,type}], rowClass:fn, defaultSort} */
+function renderGenericPage(cfg){
+  loading();
+  loadSheet(cfg.sheet).then(res=>{
+    const rows = res.rows;
+    // bangun slicer
+    let sl='';
+    (cfg.slicers||[]).forEach((s,i)=>{
+      s.id = cfg.sheet.replace(/\W/g,'')+'_sl'+i;
+      if(s.type==='dateMax'){
+        sl+='<div class="col-md-3 mb-2"><label class="form-label small mb-1">'+s.label+'</label>'+
+            '<input type="date" id="'+s.id+'" class="form-control form-control-sm slicer"></div>';
+      } else if(s.type==='searchAll'){
+        sl+='<div class="col-md-4 mb-2"><label class="form-label small mb-1">'+s.label+'</label>'+
+            '<input type="text" id="'+s.id+'" class="form-control form-control-sm slicer" placeholder="Cari di semua kolom..."></div>';
+      } else if(s.type==='select'){
+        const opts=(s.options||uniqueVals(rows,s.col)).map(o=>'<option>'+esc(o)+'</option>').join('');
+        sl+='<div class="col-md-3 mb-2"><label class="form-label small mb-1">'+s.label+'</label>'+
+            '<select id="'+s.id+'" class="form-select form-select-sm slicer"><option value="">Semua</option>'+opts+'</select></div>';
+      } else { // autocomplete
+        const opts=uniqueVals(rows,s.col).map(o=>'<option>'+esc(o)+'</option>').join('');
+        sl+='<div class="col-md-3 mb-2"><label class="form-label small mb-1">'+s.label+'</label>'+
+            '<select id="'+s.id+'" class="form-select form-select-sm slicer s2"><option value="">Semua</option>'+opts+'</select></div>';
+      }
+    });
+    // hanya tampilkan kolom yang benar-benar ada di sheet (defensive — poin #5)
+    const cols = cfg.columns.filter(c=>res.headers.indexOf(c.key)!==-1 || c.virtual);
+    const thead = cols.map(c=>'<th>'+c.label+'</th>').join('');
+
+    document.getElementById('content').innerHTML =
+      '<div class="card card-pane mb-3"><div class="card-body py-3"><div class="row" id="slicerRow">'+sl+'</div></div></div>'+
+      '<div class="card card-pane"><div class="card-body table-responsive">'+
+      '<table class="table table-sm table-hover mb-0"><thead class="table-light"><tr>'+thead+'</tr></thead><tbody id="gBody"></tbody></table></div></div>';
+
+    $('.s2').select2({width:'100%', placeholder:'Semua'});
+    const draw=()=>{
+      let data = applySlicers(rows, cfg.slicers||[]);
+      if(cfg.defaultSort) data.sort((a,b)=>String(a[cfg.defaultSort]).localeCompare(String(b[cfg.defaultSort])));
+      const body = data.map(r=>{
+        const cls = cfg.rowClass? cfg.rowClass(r):'';
+        return '<tr class="'+cls+'">'+cols.map(c=>'<td>'+esc(c.fmt? c.fmt(r[c.key],r): (c.virtual? c.virtual(r): r[c.key]))+'</td>').join('')+'</tr>';
+      }).join('');
+      document.getElementById('gBody').innerHTML = body || '<tr><td colspan="'+cols.length+'" class="text-center text-muted py-3">Tidak ada data.</td></tr>';
+    };
+    document.querySelectorAll('.slicer').forEach(el=>{ el.addEventListener('change',draw); el.addEventListener('input',draw); $(el).on('change.select2',draw); });
+    draw();
+  }).catch(e=>document.getElementById('content').innerHTML='<div class="alert alert-danger">'+e.message+'</div>');
+}
+
+/* =====================================================================
+   DEFINISI HALAMAN
+   ===================================================================== */
+const PAGES = {};
+
+/* ---------- DASHBOARD KACA ---------- */
+PAGES['dash-kaca'] = function(){
+  loading();
+  loadSheet('Summary Kaca').then(res=>{
+    const rows = res.rows;
+
+    // 1. Ekstrak Jenis dan Ukuran dari string SKU
+    let setJenis = new Set();
+    let setUkuran = new Set();
+    
+    rows.forEach(r => {
+      const sku = String(r['SKU'] || '').trim();
+      if(sku) {
+        const match = sku.match(/(\d+\s*x\s*\d+)/i);
+        if(match) {
+          const ukuran = match[1].replace(/\s+/g, '').toLowerCase();
+          setUkuran.add(ukuran);
+          setJenis.add(sku.substring(0, match.index).trim());
+        } else {
+          setJenis.add(sku);
+        }
+      }
+    });
+
+    // 2. Persiapkan tag <option> HTML dan URUTKAN (Ascending A-Z)
+    const optSku = uniqueVals(rows, 'SKU')
+      .sort((a, b) => String(a).localeCompare(String(b)))
+      .map(o => '<option value="'+esc(o)+'">'+esc(o)+'</option>').join('');
+
+    const optKat = uniqueVals(rows, 'Kategori')
+      .sort((a, b) => String(a).localeCompare(String(b)))
+      .map(o => '<option value="'+esc(o)+'">'+esc(o)+'</option>').join('');
+
+    const optAbc = uniqueVals(rows, 'A-B-C')
+      .sort((a, b) => String(a).localeCompare(String(b)))
+      .map(o => '<option value="'+esc(o)+'">'+esc(o)+'</option>').join('');
+
+    const optJenis = Array.from(setJenis)
+      .sort((a, b) => String(a).localeCompare(String(b)))
+      .map(o => '<option value="'+esc(o)+'">'+esc(o)+'</option>').join('');
+
+    // Sort numerik agar 48x.. muncul sebelum 120x..
+    const optUkuran = Array.from(setUkuran)
+      .sort((a, b) => String(a).localeCompare(String(b), undefined, {numeric: true}))
+      .map(o => '<option value="'+esc(o)+'">'+esc(o)+'</option>').join('');
+
+    // 3. Render Kerangka UI
+    document.getElementById('content').innerHTML =
+      '<div class="row g-3 mb-3" id="kpis"></div>'+
+      '<div class="card card-pane mb-3"><div class="card-body"><div class="row" id="dkSlicers"></div></div></div>'+
+      '<div class="row g-3 mb-3">'+
+        '<div class="col-md-3"><div class="card card-pane"><div class="card-body"><h6 class="small text-muted mb-0">Inventory vs Kategori</h6><div class="small fw-semibold text-dark mb-1" id="pc1t"></div><canvas id="pc1"></canvas></div></div></div>'+
+        '<div class="col-md-3"><div class="card card-pane"><div class="card-body"><h6 class="small text-muted mb-0">Inventory vs A-B-C</h6><div class="small fw-semibold text-dark mb-1" id="pc2t"></div><canvas id="pc2"></canvas></div></div></div>'+
+        '<div class="col-md-3"><div class="card card-pane"><div class="card-body"><h6 class="small text-muted mb-0">Expired vs Kategori</h6><div class="small fw-semibold text-dark mb-1" id="pc3t"></div><canvas id="pc3"></canvas></div></div></div>'+
+        '<div class="col-md-3"><div class="card card-pane"><div class="card-body"><h6 class="small text-muted mb-0">BS Qty vs Kategori</h6><div class="small fw-semibold text-dark mb-1" id="pc4t"></div><canvas id="pc4"></canvas></div></div></div>'+
+      '</div>'+
+      '<div class="row g-3">'+
+        '<div class="col-lg-8"><div class="card card-pane"><div class="card-body table-responsive"><h6>Inventaris Kaca</h6>'+
+          '<table class="table table-sm table-hover"><thead class="table-light"><tr><th>SKU</th><th>Kategori</th><th>Item Name</th><th>Total In</th><th>Total Out</th><th>Current Inv</th><th>% Avail</th><th>Expired</th><th>SS</th></tr></thead><tbody id="dkMain"></tbody></table></div></div></div>'+
+        '<div class="col-lg-4">'+
+          '<div class="card card-pane mb-3"><div class="card-body table-responsive"><h6 class="text-danger">List Stock Out</h6>'+
+            '<table class="table table-sm"><thead class="table-light"><tr><th>SKU</th><th>Kategori</th><th>SS</th><th>A-B-C</th></tr></thead><tbody id="dkOut"></tbody></table></div></div>'+
+          '<div class="card card-pane"><div class="card-body table-responsive"><h6 class="text-warning">Di Bawah SS</h6>'+
+            '<table class="table table-sm"><thead class="table-light"><tr><th>SKU</th><th>Kategori</th><th>Current Inv</th><th>SS</th><th>A-B-C</th></tr></thead><tbody id="dkUnder"></tbody></table></div></div>'+
+        '</div>'+
+      '</div>';
+
+    // 4. Render Slicers / Filters (Total layout col-md: 2 + 2 + 3 + 3 + 2 = 12 Grid)
+    document.getElementById('dkSlicers').innerHTML =
+      '<div class="col-md-2 mb-2"><label class="form-label small">SKU</label><select id="dkSku" class="form-select form-select-sm s2" multiple="multiple" data-placeholder="Pilih SKU">'+optSku+'</select></div>'+
+      '<div class="col-md-2 mb-2"><label class="form-label small">Kategori</label><select id="dkKat" class="form-select form-select-sm s2" multiple="multiple" data-placeholder="Pilih Kategori">'+optKat+'</select></div>'+
+      '<div class="col-md-3 mb-2"><label class="form-label small">Jenis SKU</label><select id="dkJenis" class="form-select form-select-sm s2" multiple="multiple" data-placeholder="Pilih Jenis">'+optJenis+'</select></div>'+
+      '<div class="col-md-3 mb-2"><label class="form-label small">Ukuran</label><select id="dkUkuran" class="form-select form-select-sm s2" multiple="multiple" data-placeholder="Pilih Ukuran">'+optUkuran+'</select></div>'+
+      '<div class="col-md-2 mb-2"><label class="form-label small">A-B-C</label><select id="dkAbc" class="form-select form-select-sm s2" multiple="multiple" data-placeholder="Pilih A-B-C">'+optAbc+'</select></div>';
+    
+    $('.s2').select2({width:'100%'});
+
+    // 5. Setup Grafik Pie
+    let charts=[];
+    const groupSum=(data,key,valKey)=>{ const m={}; data.forEach(r=>{const k=String(r[key]||'(kosong)'); m[k]=(m[k]||0)+num(r[valKey]);}); return m; };
+    const pie=(id,obj)=>{ const c=document.getElementById(id); if(charts[id])charts[id].destroy();
+      const vals=Object.values(obj); const total=vals.reduce((a,b)=>a+b,0);
+      const tEl=document.getElementById(id+'t'); if(tEl) tEl.textContent='Total Qty: '+total.toLocaleString('id-ID');
+      charts[id]=new Chart(c,{type:'pie',data:{labels:Object.keys(obj),datasets:[{data:vals,
+      backgroundColor:['#2f6fb0','#1f3a5f','#7fb1de','#a3c4e0','#f2a65a','#e76f51','#90be6d','#577590']}]},
+      options:{plugins:{legend:{labels:{font:{size:9}}}}}}); 
+    };
+
+    // 6. Logika Filter & Update Data
+    const draw=()=>{
+      // Ambil seluruh nilai multiple selection (dikembalikan sebagai array)
+      const fSku = $('#dkSku').val() || [];
+      const fKat = $('#dkKat').val() || [];
+      const fJenis = $('#dkJenis').val() || [];
+      const fUkuran = $('#dkUkuran').val() || [];
+      const fAbc = $('#dkAbc').val() || [];
+
+      let data = rows.filter(r => {
+        const sku = String(r['SKU']||'').trim();
+        const match = sku.match(/(\d+\s*x\s*\d+)/i);
+        const xUkuran = match ? match[1].replace(/\s+/g, '').toLowerCase() : '';
+        const xJenis = match ? sku.substring(0, match.index).trim() : sku.trim();
+
+        // Cek filter: Pass jika filter kosong atau record ada di dalam array pilihan
+        const passSku = (fSku.length === 0 || fSku.includes(sku));
+        const passKat = (fKat.length === 0 || fKat.includes(String(r['Kategori'])));
+        const passJenis = (fJenis.length === 0 || fJenis.includes(xJenis));
+        const passUkuran = (fUkuran.length === 0 || fUkuran.includes(xUkuran));
+        const passAbc = (fAbc.length === 0 || fAbc.includes(String(r['A-B-C'])));
+
+        return passSku && passKat && passJenis && passUkuran && passAbc;
+      });
+
+      // Render KPI
+      const totInv = data.reduce((s,r)=>s+num(r['Current Inventory']),0);
+      const totExp = data.reduce((s,r)=>s+num(r['Expired Product']),0);
+      const totBs  = data.filter(r=>String(r['Item Name']).toLowerCase().includes('(bs)')).reduce((s,r)=>s+num(r['Current Inventory']),0);
+      const stockout = data.filter(r=>{ const v=r['Current Inventory']; return v!==''&&v!==null&&num(v)===0; }).length;
+      
+      document.getElementById('kpis').innerHTML = [
+        ['Total Current Inventory',totInv.toLocaleString('id-ID')],
+        ['Total Expired Qty',totExp.toLocaleString('id-ID')],
+        ['Total BS Qty',totBs.toLocaleString('id-ID')],
+        ['Total Stockout SKU',stockout]
+      ].map(k=>'<div class="col-md-3"><div class="card kpi-card"><div class="card-body"><div class="kpi-lbl">'+k[0]+'</div><div class="kpi-val">'+k[1]+'</div></div></div></div>').join('');
+
+      // Render Grafik
+      pie('pc1',groupSum(data,'Kategori','Current Inventory'));
+      pie('pc2',groupSum(data,'A-B-C','Current Inventory'));
+      pie('pc3',groupSum(data,'Kategori','Expired Product'));
+      const bsData=data.filter(r=>String(r['Item Name']).toLowerCase().includes('(bs)'));
+      pie('pc4',groupSum(bsData,'Kategori','Current Inventory'));
+
+      // Tabel Utama
+      const sorted=[...data].sort((a,b)=>String(a['SKU']).localeCompare(String(b['SKU'])));
+      document.getElementById('dkMain').innerHTML = sorted.map(r=>{
+        const ci=r['Current Inventory']; const empty=(ci===''||ci===null||num(ci)===0);
+        return '<tr class="'+(empty?'row-empty':'')+'"><td>'+esc(r['SKU'])+'</td><td>'+esc(r['Kategori'])+'</td><td>'+esc(r['Item Name'])+'</td>'+
+          '<td>'+esc(r['Total In'])+'</td><td>'+esc(r['Total Out'])+'</td><td>'+esc(ci)+'</td><td>'+pct(r['%Available'])+'</td><td>'+esc(r['Expired Product'])+'</td><td>'+esc(r['SS'])+'</td></tr>';
+      }).join('') || '<tr><td colspan="9" class="text-center text-muted">Tidak ada data.</td></tr>';
+
+      // Tabel Stockout
+      const out=sorted.filter(r=>{const v=r['Current Inventory'];return v!==''&&v!==null&&num(v)===0;});
+      document.getElementById('dkOut').innerHTML = out.map(r=>'<tr><td>'+esc(r['SKU'])+'</td><td>'+esc(r['Kategori'])+'</td><td>'+esc(r['SS'])+'</td><td>'+esc(r['A-B-C'])+'</td></tr>').join('')
+        || '<tr><td colspan="4" class="text-center text-muted">Tidak ada.</td></tr>';
+
+      // Tabel Di Bawah SS
+      const under=sorted.filter(r=>{ const ss=r['SS']; if(ss===''||ss===null) return false; return num(r['Current Inventory']) < num(ss); });
+      document.getElementById('dkUnder').innerHTML = under.map(r=>'<tr class="row-under"><td>'+esc(r['SKU'])+'</td><td>'+esc(r['Kategori'])+'</td><td>'+esc(r['Current Inventory'])+'</td><td>'+esc(r['SS'])+'</td><td>'+esc(r['A-B-C'])+'</td></tr>').join('')
+        || '<tr><td colspan="5" class="text-center text-muted">Tidak ada.</td></tr>';
+    };
+
+    // Binding events Select2 untuk mengupdate UI saat ada pilihan yang dicentang/dihapus
+    $('.s2').on('change', draw); 
+    
+    draw();
+  }).catch(e=>document.getElementById('content').innerHTML='<div class="alert alert-danger">'+e.message+'</div>');
+};
+
+/* ---------- INVENTORY KACA (kalkulasi cutoff di klien) ---------- */
+function renderInventoryFromHistory(sheet){
+  loading();
+  loadSheet(sheet).then(res=>{
+    const rows=res.rows;
+
+    // 1. Ekstrak 'Jenis' dan 'Ukuran' unik
+    let setJenis = new Set();
+    let setUkuran = new Set();
+    
+    rows.forEach(r => {
+      const sku = String(r['SKU'] || '').trim();
+      if(sku) {
+        const match = sku.match(/(\d+\s*x\s*\d+)/i);
+        if(match) {
+          const ukuran = match[1].replace(/\s+/g, '').toLowerCase();
+          setUkuran.add(ukuran);
+          setJenis.add(sku.substring(0, match.index).trim());
+        } else {
+          setJenis.add(sku);
+        }
+      }
+    });
+
+    // 2. Persiapkan tag <option> HTML dan URUTKAN (Ascending)
+    
+    // Sort SKU
+    const optSku = uniqueVals(rows, 'SKU')
+      .sort((a, b) => String(a).localeCompare(String(b)))
+      .map(o => '<option value="'+esc(o)+'">'+esc(o)+'</option>').join('');
+
+    // Sort Kategori
+    const rawKat = (STATE.master && STATE.master.kategori) ? [...STATE.master.kategori] : [];
+    const optKat = rawKat
+      .sort((a, b) => String(a).localeCompare(String(b)))
+      .map(o => '<option value="'+esc(o)+'">'+esc(o)+'</option>').join('');
+
+    // Sort Jenis SKU
+    const optJenis = Array.from(setJenis)
+      .sort((a, b) => String(a).localeCompare(String(b)))
+      .map(o => '<option value="'+esc(o)+'">'+esc(o)+'</option>').join('');
+
+    // Sort Ukuran (Menggunakan numeric: true agar 48x... muncul sebelum 120x...)
+    const optUkuran = Array.from(setUkuran)
+      .sort((a, b) => String(a).localeCompare(String(b), undefined, {numeric: true}))
+      .map(o => '<option value="'+esc(o)+'">'+esc(o)+'</option>').join('');
+
+
+    // 3. Render UI dengan opsi yang sudah terurut
+    document.getElementById('content').innerHTML =
+      '<div class="card card-pane mb-3"><div class="card-body"><div class="row">'+
+      '<div class="col-md-2 mb-2"><label class="form-label small">As-Of Date</label><input type="date" id="ivDate" class="form-control form-control-sm ivF"></div>'+
+      
+      '<div class="col-md-2 mb-2"><label class="form-label small">SKU</label><select id="ivSku" class="form-select form-select-sm s2" multiple="multiple" data-placeholder="Pilih SKU">'+optSku+'</select></div>'+
+      '<div class="col-md-2 mb-2"><label class="form-label small">Kategori</label><select id="ivKat" class="form-select form-select-sm s2" multiple="multiple" data-placeholder="Pilih Kategori">'+optKat+'</select></div>'+
+      
+      '<div class="col-md-3 mb-2"><label class="form-label small">Jenis SKU</label><select id="ivJenis" class="form-select form-select-sm s2" multiple="multiple" data-placeholder="Pilih Jenis">'+optJenis+'</select></div>'+
+      '<div class="col-md-3 mb-2"><label class="form-label small">Ukuran</label><select id="ivUkuran" class="form-select form-select-sm s2" multiple="multiple" data-placeholder="Pilih Ukuran">'+optUkuran+'</select></div>'+
+      
+      '</div></div></div>'+
+      '<div class="card card-pane"><div class="card-body table-responsive"><table class="table table-sm table-hover">'+
+      '<thead class="table-light"><tr><th>SKU</th><th>Kategori</th><th>Item Name</th><th>Total In</th><th>Total Out</th><th>Current Inventory</th></tr></thead><tbody id="ivBody"></tbody></table></div></div>';
+    
+    // Inisialisasi Select2
+    $('.s2').select2({width:'100%'});
+
+    const draw=()=>{
+      const cutoff=asDate(document.getElementById('ivDate').value);
+      
+      const fSku = $('#ivSku').val() || [];
+      const fKat = $('#ivKat').val() || [];
+      const fJenis = $('#ivJenis').val() || [];
+      const fUkuran = $('#ivUkuran').val() || [];
+
+      const map={};
+      rows.forEach(r=>{
+        const d=asDate(r['Date'])||asDate(r['Inbound Date']);
+        if(cutoff && d && d>cutoff) return;
+        
+        const sku=String(r['SKU']||'').trim(); if(!sku) return;
+        const info=(STATE.master&&STATE.master.skuMap[sku])||{};
+        if(!map[sku]) map[sku]={sku, kategori:info.kategori||r['Kategori']||'', item:info.itemName||r['Item Name']||'', in:0, out:0};
+        map[sku].in+=num(r['Qty In']); map[sku].out+=num(r['Qty Out']);
+      });
+
+      let arr=Object.values(map).filter(x=>!(x.in===0&&x.out===0))
+        .filter(x=>{
+          const match = x.sku.match(/(\d+\s*x\s*\d+)/i);
+          const xUkuran = match ? match[1].replace(/\s+/g, '').toLowerCase() : '';
+          const xJenis = match ? x.sku.substring(0, match.index).trim() : x.sku.trim();
+
+          const passSku = (fSku.length === 0 || fSku.includes(x.sku));
+          const passKat = (fKat.length === 0 || fKat.includes(x.kategori));
+          const passJenis = (fJenis.length === 0 || fJenis.includes(xJenis));
+          const passUkuran = (fUkuran.length === 0 || fUkuran.includes(xUkuran));
+
+          return passSku && passKat && passJenis && passUkuran;
+        })
+        .sort((a,b)=>a.sku.localeCompare(b.sku));
+
+      document.getElementById('ivBody').innerHTML = arr.map(x=>'<tr><td>'+esc(x.sku)+'</td><td>'+esc(x.kategori)+'</td><td>'+esc(x.item)+'</td><td>'+x.in+'</td><td>'+x.out+'</td><td>'+(x.in-x.out)+'</td></tr>').join('')
+        || '<tr><td colspan="6" class="text-center text-muted">Tidak ada data.</td></tr>';
+    };
+
+    // Binding events
+    document.querySelectorAll('#ivDate').forEach(el=>{ el.addEventListener('change',draw); });
+    $('.s2').on('change', draw); 
+
+    draw();
+  }).catch(e=>document.getElementById('content').innerHTML='<div class="alert alert-danger">'+e.message+'</div>');
+}
+PAGES['inv-kaca']=()=>renderInventoryFromHistory('In-Out Kaca');
+
+/* ---------- INVENTORY PALLET (VERSI STRICT SKU) ---------- */
+function renderInventoryPallet(){
+  loading();
+  
+  loadSheet('In-Out Pallet').then(res => {
+    const rows = res.rows;
+
+    if (!rows || rows.length === 0) {
+      document.getElementById('content').innerHTML = 
+        '<div class="alert alert-warning">Sheet "In-Out Pallet" ditemukan, tetapi tidak ada baris data.</div>';
+      return;
+    }
+
+    document.getElementById('content').innerHTML =
+      '<div class="card card-pane mb-3"><div class="card-body"><div class="row">'+
+      '<div class="col-md-3 mb-2"><label class="form-label small">As-Of Date (cutoff)</label><input type="date" id="ipDate" class="form-control form-control-sm ipF"></div>'+
+      '<div class="col-md-3 mb-2"><label class="form-label small">Pallet</label><select id="ipPallet" class="form-select form-select-sm s2 ipF"><option value="">Semua</option>'+uniqueVals(rows,'Pallet').map(o=>'<option>'+esc(o)+'</option>').join('')+'</select></div>'+
+      '<div class="col-md-3 mb-2"><label class="form-label small">Supplier</label><select id="ipSup" class="form-select form-select-sm s2 ipF"><option value="">Semua</option>'+uniqueVals(rows,'Supplier').map(o=>'<option>'+esc(o)+'</option>').join('')+'</select></div>'+
+      '</div></div></div>'+
+      '<div class="card card-pane"><div class="card-body table-responsive"><table class="table table-sm table-hover">'+
+      '<thead class="table-light"><tr><th>SKU</th><th>Total In</th><th>Total Out</th><th>Current Inventory</th></tr></thead><tbody id="ipBody"></tbody></table></div></div>';
+    
+    $('.s2').select2({width:'100%'});
+    
+    const draw = () => {
+      const cutoff = asDate(document.getElementById('ipDate').value);
+      const fPallet = document.getElementById('ipPallet').value, fSup = document.getElementById('ipSup').value;
+      const map = {};
+      
+      rows.forEach(r => {
+        const d = asDate(r['Date']);
+        if (cutoff && d && d > cutoff) return;
+
+        // Murni hanya mengambil data dari kolom SKU
+        let key = String(r['Jenis Pallet'] || '').trim();
+        
+        // Jika kosong, berikan label eksplisit agar kita tahu datanya tidak terbaca
+        if (!key) {
+          key = "[SKU TIDAK TERBACA/KOSONG]";
+        }
+
+        if (fPallet && String(r['Pallet'] || '').trim() !== fPallet) return;
+        if (fSup && String(r['Supplier'] || '').trim() !== fSup) return; 
+        
+        if (!map[key]) map[key] = { sku: key, in: 0, out: 0 };
+        
+        const q = num(r['Qty']);
+        const st = String(r['Status'] || '').trim().toLowerCase();
+        
+        if (st.indexOf('in') === 0) map[key].in += q;
+        else if (st.indexOf('out') === 0) map[key].out += q;
+      });
+      
+      let arr = Object.values(map)
+        .filter(x => !(x.in === 0 && x.out === 0))
+        .sort((a, b) => a.sku.localeCompare(b.sku));
+        
+      document.getElementById('ipBody').innerHTML = arr.map(x => {
+        const ci = x.in - x.out; 
+        const empty = (ci === 0);
+        return '<tr class="' + (empty ? 'row-empty' : '') + '"><td>' + esc(x.sku) + '</td><td>' + x.in + '</td><td>' + x.out + '</td><td>' + ci + '</td></tr>';
+      }).join('') || '<tr><td colspan="4" class="text-center text-muted">Tidak ada data terfilter.</td></tr>';
+    };
+    
+    document.querySelectorAll('.ipF').forEach(el => { 
+      el.addEventListener('change', draw); 
+      $(el).on('change.select2', draw); 
+    });
+    
+    draw();
+  }).catch(e => {
+    document.getElementById('content').innerHTML = 
+      '<div class="alert alert-danger"><b>Gagal Memuat Data:</b> ' + esc(e.message || e) + '</div>';
+  });
+}
+
+PAGES['inv-pallet'] = renderInventoryPallet;
+
+/* ---------- LOT NUMBER DETAILS (umur kaca dihitung ulang di klien) ---------- */
+PAGES['lot'] = function() {
+  loading();
+  loadSheet('Expired Product').then(res => {
+    const rows = res.rows;
+    
+    // 1. Menyiapkan variabel options dari data sheet untuk filter dropdown
+    // Pastikan kolom Kategori, Jenis SKU, dan Ukuran memang ada di sheet Expired Product
+    const optSku = uniqueVals(rows, 'SKU').map(o => '<option value="' + esc(o) + '">' + esc(o) + '</option>').join('');
+    const optLot = uniqueVals(rows, 'Lot Number').map(o => '<option value="' + esc(o) + '">' + esc(o) + '</option>').join('');
+    const optStatus = uniqueVals(rows, 'Expired Status').map(o => '<option value="' + esc(o) + '">' + esc(o) + '</option>').join('');
+    
+    // 2. Merender HTML layout filter sesuai permintaan Anda
+    document.getElementById('content').innerHTML =
+      '<div class="card card-pane mb-3"><div class="card-body"><div class="row">' +
+      '<div class="col-md-2 mb-2"><label class="form-label small">As-Of Date</label><input type="date" id="ivDate" class="form-control form-control-sm ivF"></div>' +
+      
+      '<div class="col-md-2 mb-2"><label class="form-label small">SKU</label><select id="ivSku" class="form-select form-select-sm s2 ivF" multiple="multiple" data-placeholder="Pilih SKU">' + optSku + '</select></div>' +
+      '<div class="col-md-2 mb-2"><label class="form-label small">Lot Number</label><select id="ivKat" class="form-select form-select-sm s2 ivF" multiple="multiple" data-placeholder="Pilih Lot Number">' + optLot + '</select></div>' +
+      
+      '<div class="col-md-3 mb-2"><label class="form-label small">	Status</label><select id="ivJenis" class="form-select form-select-sm s2 ivF" multiple="multiple" data-placeholder="Pilih Status">' + optStatus + '</select></div>' +
+            
+      '</div></div></div>' +
+      '<div class="card card-pane"><div class="card-body table-responsive"><table class="table table-sm table-hover">' +
+      // Header tabel dipertahankan menggunakan parameter LOT karena data ditarik dari Expired Product
+      '<thead class="table-light"><tr><th>Inbound Date</th><th>SKU</th><th>Supplier</th><th>Merk Kaca</th><th>Lot Number</th><th>Umur (Bln)</th><th>Exp Qty</th><th>Qty</th><th>Status</th></tr></thead><tbody id="ivBody"></tbody></table></div></div>';
+    
+    // Inisialisasi Select2
+    $('.s2').select2({ width: '100%' });
+    
+    // Helper untuk menangkap nilai Select2 yang multiple="multiple" (mengembalikan array)
+    const getVals = (id) => {
+      const val = $(id).val();
+      return val ? (Array.isArray(val) ? val : [val]) : [];
+    };
+
+    const draw = () => {
+      const snap = asDate(document.getElementById('ivDate').value) || new Date();
+      
+      // Mengambil nilai filter sebagai Array
+      const fSku = getVals('#ivSku');
+      const fKat = getVals('#ivKat');
+      const fJenis = getVals('#ivJenis');
+      const fUkuran = getVals('#ivUkuran');
+      
+      let arr = rows.filter(r => { 
+        const ib = asDate(r['Inbound Date']); 
+        return !(ib && ib > snap); // sembunyikan inbound setelah snapshot
+      });
+      
+      arr = arr.filter(r => String(r['SKU'] || '').trim() !== ''); // baris tanpa SKU tidak ditampilkan
+      
+      // Terapkan filter logika Array.includes() untuk menampung format Multiple Select
+      arr = arr.filter(r => {
+        if (fSku.length > 0 && !fSku.includes(r['SKU'])) return false;
+        if (fKat.length > 0 && !fKat.includes(r['Kategori'])) return false;
+        if (fJenis.length > 0 && !fJenis.includes(r['Jenis SKU'])) return false;
+        if (fUkuran.length > 0 && !fUkuran.includes(r['Ukuran'])) return false;
+        return true;
+      });
+      
+      const body = arr.map(r => {
+        const ib = asDate(r['Inbound Date']);
+        const age = ib ? monthsBetween(ib, snap) : num(r['Umur Kaca (Bulan)']);
+        
+        let status = String(r['Expired Status'] || '').trim();
+        if (!status) { status = age >= 12 ? 'Merah' : age >= 6 ? 'Kuning' : 'Hijau'; }
+        
+        const cls = status === 'Merah' ? 'row-red' : status === 'Kuning' ? 'row-yellow' : status === 'Hijau' ? 'row-green' : '';
+        
+        return '<tr class="' + cls + '"><td>' + fmtDate(r['Inbound Date']) + '</td><td>' + esc(r['SKU']) + '</td><td>' + esc(r['Supplier']) + '</td><td>' + esc(r['Merk']) + '</td><td>' + esc(r['Lot Number']) + '</td><td>' + age + '</td><td>' + esc(r['Exp Qty']) + '</td><td>' + esc(r['Qty']) + '</td><td>' + esc(status) + '</td></tr>';
+      }).join('');
+      
+      // Pastikan target innerHTML sesuai dengan ID tbody terbaru yaitu "ivBody"
+      document.getElementById('ivBody').innerHTML = body || '<tr><td colspan="9" class="text-center text-muted">Tidak ada data.</td></tr>';
+    };
+    
+    // Bind trigger perubahan pada elemen regular & Select2
+    document.querySelectorAll('.ivF').forEach(el => { el.addEventListener('change', draw); });
+    $('.s2').on('change.select2', draw);
+    
+    draw();
+  }).catch(e => document.getElementById('content').innerHTML = '<div class="alert alert-danger">' + e.message + '</div>');
+};
+
+/* ---------- KONTROL SJ KACA / PALLET (tabel In & Out via tab) ---------- */
+function renderKontrolSJ(sheet, inCols, outCols, inSlicers, outSlicers, label){
+  document.getElementById('content').innerHTML =
+    '<ul class="nav nav-tabs mb-3">'+
+    '<li class="nav-item"><a class="nav-link active" id="tabIn" role="button" style="cursor:pointer" onclick="ksjTab(\'in\')">Tabel Inbound '+label+' SG</a></li>'+
+    '<li class="nav-item"><a class="nav-link" id="tabOut" role="button" style="cursor:pointer" onclick="ksjTab(\'out\')">Tabel Outbound '+label+' SG</a></li></ul>'+
+    '<h6 class="text-muted mb-2" id="ksjTitle"></h6><div id="ksjArea"></div>';
+  window._ksj={sheet,inCols,outCols,inSlicers,outSlicers,label};
+  ksjTab('in');
+}
+function ksjTab(which){
+  document.getElementById('tabIn').classList.toggle('active',which==='in');
+  document.getElementById('tabOut').classList.toggle('active',which==='out');
+  const k=window._ksj;
+  document.getElementById('ksjTitle').textContent =
+    'Sub Menu: Tabel '+(which==='in'?'Inbound':'Outbound')+' '+k.label+' SG';
+  const cols=(which==='in'?k.inCols:k.outCols).map(c=>({key:c,label:c}));
+  const slicers=(which==='in'?k.inSlicers:k.outSlicers);
+  // Kontrol SJ: tampilkan SELURUH kolom PRD apa adanya (jangan buang kolom yang
+  // belum ada datanya) supaya layout tabel persis seperti spesifikasi.
+  renderGenericInto('ksjArea', k.sheet, cols, slicers, true);
+}
+/* varian renderGenericPage yang menulis ke container tertentu.
+   keepAllCols=true -> jangan filter kolom yang tak ada di sheet (untuk Kontrol SJ). */
+function renderGenericInto(containerId, sheet, columns, slicers, keepAllCols){
+  const cont=document.getElementById(containerId);
+  cont.innerHTML='<div class="text-center py-4"><div class="spinner-border"></div></div>';
+  loadSheet(sheet).then(res=>{
+    const rows=res.rows; let sl='';
+    slicers.forEach((s,i)=>{ s.id=containerId+'_s'+i;
+      if(s.type==='dateMax') sl+='<div class="col-md-3 mb-2"><label class="form-label small">'+s.label+'</label><input type="date" id="'+s.id+'" class="form-control form-control-sm gsl"></div>';
+      else if(s.type==='select') sl+='<div class="col-md-3 mb-2"><label class="form-label small">'+s.label+'</label><select id="'+s.id+'" class="form-select form-select-sm gsl"><option value="">Semua</option>'+(s.options||uniqueVals(rows,s.col)).map(o=>'<option>'+esc(o)+'</option>').join('')+'</select></div>';
+      else sl+='<div class="col-md-3 mb-2"><label class="form-label small">'+s.label+'</label><select id="'+s.id+'" class="form-select form-select-sm gsl gs2"><option value="">Semua</option>'+uniqueVals(rows,s.col).map(o=>'<option>'+esc(o)+'</option>').join('')+'</select></div>';
+    });
+    const cols = keepAllCols ? columns : columns.filter(c=>res.headers.indexOf(c.key)!==-1);
+    cont.innerHTML='<div class="card card-pane mb-3"><div class="card-body"><div class="row">'+sl+'</div></div></div>'+
+      '<div class="card card-pane"><div class="card-body table-responsive"><table class="table table-sm table-hover"><thead class="table-light"><tr>'+cols.map(c=>'<th>'+c.label+'</th>').join('')+'</tr></thead><tbody id="'+containerId+'_b"></tbody></table></div></div>';
+    $('.gs2').select2({width:'100%'});
+    const draw=()=>{ const data=applySlicers(rows,slicers);
+      document.getElementById(containerId+'_b').innerHTML = data.map(r=>'<tr>'+cols.map(c=>'<td>'+esc(/Tanggal|Date/.test(c.key)?fmtDate(r[c.key]):r[c.key])+'</td>').join('')+'</tr>').join('')
+        || '<tr><td colspan="'+cols.length+'" class="text-center text-muted">Tidak ada data.</td></tr>'; };
+    cont.querySelectorAll('.gsl').forEach(el=>{ el.addEventListener('change',draw); $(el).on('change.select2',draw); });
+    draw();
+  });
+}
+PAGES['ksj-kaca']=()=>renderKontrolSJ('Kontrol SJ Kaca',
+  ['Tanggal In SG','PG In SG','Supplier In SG','Qty In SG','Lot In SG','Tanggal Out KIK','PG Out KIK','Customer Out KIK','Qty Out KIK','Lot Out KIK','Kecocokan In SG'],
+  ['Tanggal Out SG','PG Out SG','Customer Out SG','Qty Out SG','Lot Out SG','Tanggal In KIK','PG In KIK','Supplier In KIK','Qty In KIK','Lot In KIK','Kecocokan Out SG'],
+  [{label:'Tanggal In SG',col:'Tanggal In SG',type:'dateMax'},{label:'PG In SG',col:'PG In SG',type:'ac'},{label:'Supplier In SG',col:'Supplier In SG',type:'ac'},{label:'Kecocokan In SG',col:'Kecocokan In SG',type:'select'}],
+  [{label:'Tanggal Out SG',col:'Tanggal Out SG',type:'dateMax'},{label:'PG Out SG',col:'PG Out SG',type:'ac'},{label:'Customer Out SG',col:'Customer Out SG',type:'ac'},{label:'Kecocokan Out SG',col:'Kecocokan Out SG',type:'select'}],'Kaca');
+PAGES['ksj-pallet']=()=>renderKontrolSJ('Kontrol SJ Pallet',
+  ['Tanggal In SG','PG In SG','Supplier In SG','Qty In SG','SKU Pallet In SG','Tanggal Out KIK','PG Out KIK','Customer Out KIK','Qty Out KIK','SKU Pallet Out KIK','Kecocokan In SG'],
+  ['Tanggal Out SG','PG Out SG','Customer Out SG','Qty Out SG','SKU Pallet Out SG','Tanggal In KIK','PG In KIK','Supplier In KIK','Qty In KIK','SKU Pallet In KIK','Kecocokan Out SG'],
+  [{label:'Tanggal In SG',col:'Tanggal In SG',type:'dateMax'},{label:'PG In SG',col:'PG In SG',type:'ac'},{label:'SKU Pallet In SG',col:'SKU Pallet In SG',type:'ac'},{label:'Kecocokan In SG',col:'Kecocokan In SG',type:'select'}],
+  [{label:'Tanggal Out SG',col:'Tanggal Out SG',type:'dateMax'},{label:'PG Out SG',col:'PG Out SG',type:'ac'},{label:'SKU Pallet Out SG',col:'SKU Pallet Out SG',type:'ac'},{label:'Kecocokan Out SG',col:'Kecocokan Out SG',type:'select'}],'Pallet');
+
+/* ---------- DASHBOARD PALLET ---------- */
+PAGES['dash-pallet']=function(){
+  loading();
+  Promise.all([loadSheet('Summary Pallet'), loadSheet('In-Out Pallet')]).then(arr=>{
+    const res=arr[0], resIO=arr[1];
+    const rows=res.rows; const ioRows=resIO.rows; const has=c=>res.headers.indexOf(c)!==-1;
+    let sl='';
+    if(has('Jenis Pallet')) sl+='<div class="col-md-4 mb-2"><label class="form-label small">Jenis Pallet</label><select id="dpJenis" class="form-select form-select-sm s2 dpF"><option value="">Semua</option>'+uniqueVals(rows,'Jenis Pallet').map(o=>'<option>'+esc(o)+'</option>').join('')+'</select></div>';
+    if(has('SKU Pallet')) sl+='<div class="col-md-4 mb-2"><label class="form-label small">SKU Pallet</label><select id="dpSku" class="form-select form-select-sm s2 dpF"><option value="">Semua</option>'+uniqueVals(rows,'SKU Pallet').map(o=>'<option>'+esc(o)+'</option>').join('')+'</select></div>';
+    if(has('Supplier')) sl+='<div class="col-md-4 mb-2"><label class="form-label small">Supplier</label><select id="dpSup" class="form-select form-select-sm s2 dpF"><option value="">Semua</option>'+uniqueVals(rows,'Supplier').map(o=>'<option>'+esc(o)+'</option>').join('')+'</select></div>';
+
+    const invKey = has('Inventory')?'Inventory':(has('Current Inventory')?'Current Inventory':'Inventory');
+    const cols=[['Jenis Pallet','Jenis Pallet'],['SKU Pallet','SKU Pallet'],['Supplier','Supplier'],['Check In','Check In'],['Check Out','Check Out'],[invKey,'Current Inventory']].filter(c=>has(c[0]));
+
+    const pieCard=(id,title)=>'<div class="col-md-4"><div class="card card-pane"><div class="card-body"><h6 class="small text-muted mb-0">'+title+'</h6><div class="small fw-semibold text-dark mb-1" id="'+id+'t"></div><canvas id="'+id+'"></canvas></div></div></div>';
+    document.getElementById('content').innerHTML=
+      '<div class="row g-3 mb-3" id="dpKpi"></div>'+
+      '<div class="card card-pane mb-3"><div class="card-body"><div class="row">'+sl+'</div></div></div>'+
+      '<div class="row g-3 mb-3">'+
+        (has('Supplier')?pieCard('dpc1','Inventory vs Supplier'):'')+
+        pieCard('dpc2','Inventory vs Jenis Pallet')+
+        pieCard('dpc3','Inventory vs Merk')+
+      '</div>'+
+      '<div class="card card-pane"><div class="card-body table-responsive"><table class="table table-sm table-hover"><thead class="table-light"><tr>'+cols.map(c=>'<th>'+c[1]+'</th>').join('')+'</tr></thead><tbody id="dpBody"></tbody></table></div></div>';
+    $('.s2').select2({width:'100%'});
+    let charts={};
+    const pie=(id,obj)=>{ const c=document.getElementById(id); if(!c)return; if(charts[id])charts[id].destroy();
+      const vals=Object.values(obj); const total=vals.reduce((a,b)=>a+b,0);
+      const tEl=document.getElementById(id+'t'); if(tEl) tEl.textContent='Total Qty: '+total.toLocaleString('id-ID');
+      charts[id]=new Chart(c,{type:'pie',data:{labels:Object.keys(obj),datasets:[{data:vals,backgroundColor:['#2f6fb0','#1f3a5f','#7fb1de','#f2a65a','#90be6d','#577590','#e76f51']}]},options:{plugins:{legend:{labels:{font:{size:9}}}}}}); };
+    const groupSum=(d,k)=>{ const m={}; d.forEach(r=>{const key=String(r[k]||'(kosong)'); m[key]=(m[key]||0)+num(r[invKey]);}); return m; };
+    // Inventory per Merk dihitung dari In-Out Pallet (Status In − Out). Hanya nilai > 0.
+    const merkInv=()=>{ const m={}; ioRows.forEach(r=>{ const k=String(r['Merk']||'(kosong)'); const q=num(r['Qty']); const st=String(r['Status']||'').toLowerCase(); if(!(k in m))m[k]=0; if(st.indexOf('in')===0)m[k]+=q; else if(st.indexOf('out')===0)m[k]-=q; });
+      const out={}; Object.keys(m).forEach(k=>{ if(m[k]>0) out[k]=m[k]; }); return out; };
+    const draw=()=>{
+      let data=rows.slice();
+      const g=(id,col)=>{const e=document.getElementById(id); if(e&&e.value) data=data.filter(r=>String(r[col])==e.value);};
+      g('dpJenis','Jenis Pallet'); g('dpSku','SKU Pallet'); g('dpSup','Supplier');
+      const tot=data.reduce((s,r)=>s+num(r[invKey]),0);
+      document.getElementById('dpKpi').innerHTML='<div class="col-md-4"><div class="card kpi-card"><div class="card-body"><div class="kpi-lbl">Total Inventory Pallet</div><div class="kpi-val">'+tot.toLocaleString('id-ID')+'</div></div></div></div>';
+      if(has('Supplier')) pie('dpc1',groupSum(data,'Supplier'));
+      pie('dpc2',groupSum(data,'Jenis Pallet'));
+      pie('dpc3',merkInv());
+      const sorted=[...data].sort((a,b)=>String(a[has('SKU Pallet')?'SKU Pallet':'Jenis Pallet']).localeCompare(String(b[has('SKU Pallet')?'SKU Pallet':'Jenis Pallet'])));
+      document.getElementById('dpBody').innerHTML=sorted.map(r=>{const ci=r[invKey];const empty=(ci===''||ci===null||num(ci)===0);
+        return '<tr class="'+(empty?'row-empty':'')+'">'+cols.map(c=>'<td>'+esc(r[c[0]])+'</td>').join('')+'</tr>';}).join('')
+        || '<tr><td colspan="'+cols.length+'" class="text-center text-muted">Tidak ada data.</td></tr>';
+    };
+    document.querySelectorAll('.dpF').forEach(el=>{ el.addEventListener('change',draw); $(el).on('change.select2',draw); });
+    draw();
+  }).catch(e=>document.getElementById('content').innerHTML='<div class="alert alert-danger">'+e.message+'</div>');
+};
+
+/* ---------- TRACKING NOMER PALLET ---------- */
+PAGES['track-pallet']=()=>renderGenericPage({
+  sheet:'Tracking Nomer Pallet',
+  columns:[{key:'SKU Pallet',label:'SKU Pallet'},{key:'Tanggal Kembali',label:'Tgl Kembali',fmt:fmtDate},{key:'Tanggal Keluar',label:'Tgl Keluar',fmt:fmtDate},
+    {key:'Status',label:'Status'},{key:'Cust/Supplier Terakhir Kembali',label:'Terakhir Kembali'},{key:'Cust/Supplier Keluar Terakhir',label:'Keluar Terakhir'}],
+  slicers:[{label:'Cari (Global)',type:'searchAll'},
+    {label:'Tanggal Kembali',col:'Tanggal Kembali',type:'dateMax'},{label:'Tanggal Keluar',col:'Tanggal Keluar',type:'dateMax'},
+    {label:'Status',col:'Status',type:'select',options:['Ada','Kosong']}],
+  rowClass:r=>String(r['Status']).toLowerCase()==='kosong'?'row-out':''
+});
+
+/* ---------- HASIL STOCK OPNAME ---------- */
+PAGES['hasil-so']=function(){
+  loading();
+  loadSheet('Hasil SO').then(res=>{
+    const rows=res.rows;
+    const cols=['Periode','Gudang','SKU','Item Name','Stok Sistem Keuangan',
+      'Stok Inventory Management','Hitungan SO','Selisih','Keterangan Selisih','Perbaikan','No LKS'];
+    // Opsi Periode (diformat agar rapi bila Periode berupa tanggal)
+    const periodeVals = Array.from(new Set(rows.map(r=>fmtDate(r['Periode']))
+        .filter(v=>String(v).trim()!==''))).sort();
+    const selisihVals = Array.from(new Set(rows.map(r=>String(r['Selisih']==null?'':r['Selisih']).trim())
+        .filter(v=>v!==''))).sort(function(a,b){ var na=Number(a),nb=Number(b);
+        return (isFinite(na)&&isFinite(nb))? na-nb : a.localeCompare(b); });
+    document.getElementById('content').innerHTML=
+      '<div class="card card-pane mb-3"><div class="card-body"><div class="row">'+
+      '<div class="col-md-4 mb-2"><label class="form-label small">Cari (Global)</label><input type="text" id="soSearch" class="form-control form-control-sm soF" placeholder="Cari di semua kolom..."></div>'+
+      '<div class="col-md-4 mb-2"><label class="form-label small">Periode</label><select id="soPeriode" class="form-select form-select-sm s2 soF"><option value="">Semua</option>'+periodeVals.map(o=>'<option>'+esc(o)+'</option>').join('')+'</select></div>'+
+      '<div class="col-md-4 mb-2"><label class="form-label small">Selisih</label><select id="soSelisih" class="form-select form-select-sm s2 soF"><option value="">Semua</option>'+selisihVals.map(o=>'<option>'+esc(o)+'</option>').join('')+'</select></div>'+
+      '</div></div></div>'+
+      '<div class="card card-pane"><div class="card-body table-responsive"><table class="table table-sm table-hover"><thead class="table-light"><tr>'+cols.map(c=>'<th>'+esc(c)+'</th>').join('')+'</tr></thead><tbody id="soBody"></tbody></table></div></div>';
+    $('.s2').select2({width:'100%'});
+    let busy=false;
+    const optsHtml=(vals)=>'<option value="">Semua</option>'+vals.map(o=>'<option>'+esc(o)+'</option>').join('');
+    const draw=()=>{
+      const q=document.getElementById('soSearch').value.toLowerCase().trim();
+      const per=document.getElementById('soPeriode').value;
+      // Baris yang lolos filter Cari + Periode (dasar untuk opsi Selisih & tabel)
+      const base=rows.filter(r=>{
+        if(per && fmtDate(r['Periode'])!==per) return false;
+        if(q){ const hit=cols.some(c=>String(r[c]==null?'':r[c]).toLowerCase().includes(q)); if(!hit) return false; }
+        return true;
+      });
+      // Opsi Selisih mengikuti data yang sedang tampil (cascading)
+      const opts=Array.from(new Set(base.map(r=>String(r['Selisih']==null?'':r['Selisih']).trim())
+        .filter(v=>v!==''))).sort(function(a,b){ var na=Number(a),nb=Number(b);
+        return (isFinite(na)&&isFinite(nb))? na-nb : a.localeCompare(b); });
+      const $sel=$('#soSelisih');
+      let cur=$sel.val()||'';
+      if(cur && opts.indexOf(cur)<0) cur='';                  // pilihan lama tak ada lagi -> reset ke Semua
+      busy=true;
+      $sel.html(optsHtml(opts)).val(cur).trigger('change.select2');  // refresh opsi Select2 tanpa memicu draw
+      busy=false;
+      // Tabel: terapkan filter Selisih aktif (bila ada)
+      const data=cur? base.filter(r=>String(r['Selisih']==null?'':r['Selisih']).trim()===cur) : base;
+      document.getElementById('soBody').innerHTML = data.map(r=>'<tr>'+
+        cols.map(c=>'<td>'+esc(c==='Periode'?fmtDate(r[c]):r[c])+'</td>').join('')+'</tr>').join('')
+        || '<tr><td colspan="'+cols.length+'" class="text-center text-muted py-3">Tidak ada data.</td></tr>';
+    };
+    document.querySelectorAll('.soF').forEach(el=>{
+      el.addEventListener('change',()=>{ if(!busy) draw(); });
+      el.addEventListener('input',()=>{ if(!busy) draw(); });
+      $(el).on('change.select2',()=>{ if(!busy) draw(); });
+    });
+    draw();
+  }).catch(e=>document.getElementById('content').innerHTML='<div class="alert alert-danger">'+e.message+'</div>');
+};
+
+/* ---------- RIWAYAT TRANSAKSI (DataTables + badge + Custom Filter per Sheet) ---------- */
+function renderHistory(sheet, cols, filterType){
+  loading();
+  loadSheet(sheet).then(res=>{
+    
+    // 1. Ekstrak data unik berdasarkan tipe filter yang diminta
+    let setOption1 = new Set();
+    let setOption2 = new Set();
+    let setOption3 = new Set();
+    
+    res.rows.forEach(r => {
+      if(filterType === 'kaca') {
+        const sku = String(r['SKU'] || '').trim();
+        if(sku) {
+          setOption1.add(sku); // SKU
+          const match = sku.match(/(\d+\s*x\s*\d+)/i);
+          if(match) {
+            setOption3.add(match[1].replace(/\s+/g, '').toLowerCase()); // Ukuran
+            setOption2.add(sku.substring(0, match.index).trim());      // Jenis SKU
+          } else {
+            setOption2.add(sku);
+          }
+        }
+      } else if(filterType === 'pallet') {
+        const jenisPallet = String(r['Jenis Pallet'] || '').trim();
+        const pallet = String(r['Pallet'] || '').trim();
+        if(jenisPallet) setOption1.add(jenisPallet); // Jenis Pallet
+        if(pallet) setOption2.add(pallet);           // Pallet
+      }
+    });
+
+    // 2. Format HTML <option> dan urutkan secara Ascending
+    const opt1 = Array.from(setOption1).sort((a,b) => String(a).localeCompare(String(b))).map(o => '<option value="'+esc(o)+'">'+esc(o)+'</option>').join('');
+    const opt2 = Array.from(setOption2).sort((a,b) => String(a).localeCompare(String(b))).map(o => '<option value="'+esc(o)+'">'+esc(o)+'</option>').join('');
+    const opt3 = Array.from(setOption3).sort((a,b) => String(a).localeCompare(String(b), undefined, {numeric: true})).map(o => '<option value="'+esc(o)+'">'+esc(o)+'</option>').join('');
+
+    // 3. Render HTML UI Dinamis Berdasarkan Tipe Filter
+    let filterHtml = '';
+    if(filterType === 'kaca') {
+      filterHtml = 
+        '<div class="col-md-2 mb-2"><label class="form-label small">SKU</label><select id="f1" class="form-select form-select-sm s2" multiple="multiple" data-placeholder="Semua">'+opt1+'</select></div>'+
+        '<div class="col-md-2 mb-2"><label class="form-label small">Jenis SKU</label><select id="f2" class="form-select form-select-sm s2" multiple="multiple" data-placeholder="Semua">'+opt2+'</select></div>'+
+        '<div class="col-md-2 mb-2"><label class="form-label small">Ukuran</label><select id="f3" class="form-select form-select-sm s2" multiple="multiple" data-placeholder="Semua">'+opt3+'</select></div>';
+    } else if(filterType === 'pallet') {
+      filterHtml = 
+        '<div class="col-md-3 mb-2"><label class="form-label small">Jenis Pallet</label><select id="f1" class="form-select form-select-sm s2" multiple="multiple" data-placeholder="Semua">'+opt1+'</select></div>'+
+        '<div class="col-md-3 mb-2"><label class="form-label small">Pallet</label><select id="f2" class="form-select form-select-sm s2" multiple="multiple" data-placeholder="Semua">'+opt2+'</select></div>';
+    }
+
+    document.getElementById('content').innerHTML=
+      '<div class="card card-pane mb-3"><div class="card-body"><div class="row">'+
+      '<div class="col-md-2 mb-2"><label class="form-label small">Dari Tanggal</label><input type="date" id="hStart" class="form-control form-control-sm hF"></div>'+
+      '<div class="col-md-2 mb-2"><label class="form-label small">Sampai Tanggal</label><input type="date" id="hEnd" class="form-control form-control-sm hF"></div>'+
+      '<div class="col-md-2 mb-2"><label class="form-label small">Status</label><select id="hStat" class="form-select form-select-sm hF"><option value="">Semua</option><option>Inbound</option><option>Outbound</option></select></div>'+
+      filterHtml +
+      '</div></div></div>'+
+      '<div class="card card-pane"><div class="card-body table-responsive"><table id="histTbl" class="table table-sm table-hover" style="width:100%"><thead class="table-light"><tr>'+cols.map(c=>'<th>'+c+'</th>').join('')+'</tr></thead><tbody></tbody></table></div></div>';
+    
+    // Inisialisasi plugin Select2
+    $('.s2').select2({width:'100%'});
+    
+    let dt=null;
+    
+    const draw=()=>{
+      const s=asDate(document.getElementById('hStart').value);
+      const e=asDate(document.getElementById('hEnd').value);
+      const st=document.getElementById('hStat').value;
+      
+      const val1 = $('#f1').val() || [];
+      const val2 = $('#f2').val() || [];
+      const val3 = $('#f3').length ? ($('#f3').val() || []) : [];
+
+      // 4. Logika Penyaringan Data
+      let data=res.rows.filter(r=>{ 
+        // Filter Tanggal & Status
+        const d=asDate(r['Date'])||asDate(r['Inbound Date']);
+        if(s&&d&&d<s) return false; 
+        if(e&&d&&d>e) return false; 
+        if(st&&String(r['Status'])!==st) return false; 
+        
+        // Filter spesifik berdasarkan halaman
+        if(filterType === 'kaca') {
+          const sku = String(r['SKU']||'').trim();
+          const match = sku.match(/(\d+\s*x\s*\d+)/i);
+          const xUkuran = match ? match[1].replace(/\s+/g, '').toLowerCase() : '';
+          const xJenis = match ? sku.substring(0, match.index).trim() : sku.trim();
+
+          if (val1.length > 0 && !val1.includes(sku)) return false;
+          if (val2.length > 0 && !val2.includes(xJenis)) return false;
+          if (val3.length > 0 && !val3.includes(xUkuran)) return false;
+        } else if(filterType === 'pallet') {
+          const valJenisPallet = String(r['Jenis Pallet'] || '').trim();
+          const valPallet = String(r['Pallet'] || '').trim();
+
+          if (val1.length > 0 && !val1.includes(valJenisPallet)) return false;
+          if (val2.length > 0 && !val2.includes(valPallet)) return false;
+        }
+
+        return true; 
+      });
+      
+      // 5. Render Data ke Datatables
+      const body=data.map(r=>'<tr>'+cols.map(c=>{
+        if(c==='Status'){ const stat=String(r[c]); const b=/in/i.test(stat)?'success':'warning'; return '<td><span class="badge text-bg-'+b+'">'+esc(stat)+'</span></td>'; }
+        return '<td>'+esc(/Date/.test(c)?fmtDate(r[c]):r[c])+'</td>'; 
+      }).join('')+'</tr>').join('');
+      
+      if(dt){ dt.destroy(); }
+      document.querySelector('#histTbl tbody').innerHTML=body;
+      
+      dt=$('#histTbl').DataTable({
+        order:[[0,'desc']], 
+        lengthMenu:[10,25,50], 
+        pageLength:10, 
+        language:{search:'Cari:',lengthMenu:'Tampil _MENU_',info:'_START_-_END_ dari _TOTAL_',paginate:{next:'›',previous:'‹'}}
+      });
+    };
+    
+    // 6. Binding Event
+    document.querySelectorAll('.hF').forEach(el=>el.addEventListener('change',draw));
+    $('.s2').on('change', draw); 
+    
+    draw();
+  }).catch(e=>document.getElementById('content').innerHTML='<div class="alert alert-danger">'+e.message+'</div>');
+}
+
+// Perhatikan penambahan parameter ke-3 ('kaca' atau 'pallet')
+PAGES['hist-kaca']=()=>renderHistory('In-Out Kaca',['Date','Status','SKU','Item Name','Qty In','Qty Out','Customer','Supplier','Merk Kaca','Lot Number','No Dokumen'], 'kaca');
+PAGES['hist-pallet']=()=>renderHistory('In-Out Pallet',['Date','Status','Pallet','Merk','Jenis Pallet','Nomor Pallet','Qty','Dokumen','Nomor Dokumen','Customer','SKU Pallet','Code'], 'pallet');
+
+/* =====================================================================
+   FORM TRANSAKSI
+   ===================================================================== */
+function today(){ return new Date().toISOString().slice(0,10); }
+function opt(arr){ return '<option></option>'+(arr||[]).map(o=>'<option>'+esc(o)+'</option>').join(''); }
+/* Panel panduan di sebelah kanan form. */
+function panduan(tips){
+  return '<div class="card card-pane"><div class="card-body"><h6 class="text-primary"><i class="bi bi-info-circle me-1"></i>Panduan Pengisian</h6>'+
+    '<ul class="small text-muted mb-0 ps-3">'+tips.map(t=>'<li class="mb-2">'+t+'</li>').join('')+'</ul></div></div>';
+}
+
+function formKaca(mode){ // mode='in' atau 'out'
+  if(!STATE.master){ document.getElementById('content').innerHTML='<div class="alert alert-warning">Masterdata belum termuat. Coba lagi sebentar.</div>'; return; }
+  const m=STATE.master, isIn=mode==='in';
+  const tips = isIn
+    ? ['Field bertanda <b>*</b> wajib diisi.','Pilih <b>SKU</b> dulu — Nama Barang & Merk terisi otomatis.','Qty Masuk harus angka positif (&gt; 0).','Lot Number boleh dipilih dari daftar atau ketik baru.']
+    : ['Field bertanda <b>*</b> wajib diisi, termasuk <b>Lot Number</b>.','Transaksi <b>ditolak</b> bila Qty keluar melebihi stok lot tersebut (sheet Expired Product).','Transaksi <b>ditolak</b> bila stok SKU tidak mencukupi.','Pilih SKU dulu — Nama Barang & Merk terisi otomatis.'];
+  document.getElementById('content').innerHTML=
+    '<div class="row g-3">'+
+    '<div class="col-lg-8"><div class="card card-pane"><div class="card-body"><h5 class="mb-3">'+(isIn?'Form Barang Masuk Kaca':'Form Barang Keluar Kaca')+'</h5>'+
+    '<div class="row g-3">'+
+    (isIn?'<div class="col-md-6"><label class="form-label small">Tanggal Masuk *</label><input type="date" id="fkInbound" class="form-control" value="'+today()+'"></div>':'')+
+    '<div class="col-md-6"><label class="form-label small">Tanggal Dokumen *</label><input type="date" id="fkDate" class="form-control" value="'+today()+'"></div>'+
+    '<div class="col-md-6"><label class="form-label small">SKU Produk *</label><select id="fkSku" class="form-select">'+opt(m.sku)+'</select></div>'+
+    '<div class="col-md-6"><label class="form-label small">Merk Kaca *</label><select id="fkMerk" class="form-select">'+opt(m.merk)+'</select></div>'+
+    '<div class="col-md-6"><label class="form-label small">Nama Barang</label><input type="text" id="fkItem" class="form-control" readonly></div>'+
+    '<div class="col-md-6"><label class="form-label small">Qty '+(isIn?'Masuk':'Keluar')+' *</label><input type="number" min="1" id="fkQty" class="form-control"></div>'+
+    (isIn?'':'<div class="col-md-6"><label class="form-label small">Customer</label><select id="fkCust" class="form-select">'+opt(m.customer)+'</select></div>')+
+    '<div class="col-md-6"><label class="form-label small">Supplier '+(isIn?'*':'')+'</label><select id="fkSup" class="form-select">'+opt(m.supplier)+'</select></div>'+
+    '<div class="col-md-6"><label class="form-label small">Lot Number *</label><select id="fkLot" class="form-select">'+opt(m.lotNumber)+'</select></div>'+
+    '<div class="col-md-6"><label class="form-label small">Jenis Dokumen *</label><select id="fkJenisDok" class="form-select"><option value="">-- pilih --</option>'+(m.jenisDokKaca||[]).map(o=>'<option>'+esc(o)+'</option>').join('')+'</select></div>'+
+    '<div class="col-md-6"><label class="form-label small">No Dokumen *</label><input type="text" id="fkDoc" class="form-control"></div>'+
+    '</div><div class="mt-3"><button class="btn btn-primary" style="background:var(--sg-navy);border:0" id="fkSubmit">Simpan</button></div></div></div></div>'+
+    '<div class="col-lg-4">'+panduan(tips)+'</div>'+
+    '</div>';
+  $('#fkSku,#fkMerk,#fkSup,#fkLot,#fkCust').select2({width:'100%', tags:true, placeholder:'-- pilih --'});
+  // auto-populate Item Name + Merk saat SKU dipilih
+  $('#fkSku').on('change',function(){ const info=m.skuMap[this.value]; if(info){ document.getElementById('fkItem').value=info.itemName; if(info.merk){$('#fkMerk').val(info.merk).trigger('change');} } });
+  document.getElementById('fkSubmit').addEventListener('click',function(){
+    const btn=this; const f={
+      inboundDate:isIn?document.getElementById('fkInbound').value:'',
+      date:document.getElementById('fkDate').value, sku:$('#fkSku').val(), merk:$('#fkMerk').val(),
+      itemName:document.getElementById('fkItem').value, supplier:$('#fkSup').val(),
+      lotNumber:$('#fkLot').val(), jenisDokumen:document.getElementById('fkJenisDok').value, noDokumen:document.getElementById('fkDoc').value
+    };
+    if(isIn) f.qtyIn=document.getElementById('fkQty').value; else { f.qtyOut=document.getElementById('fkQty').value; f.customer=$('#fkCust').val(); }
+    if (!f.lotNumber || f.lotNumber.trim() === "") {
+      toast('Kolom Lot Number wajib diisi.', 'warning');
+      return; 
+    }
+    btn.disabled=true; btn.innerHTML='<span class="spinner-border spinner-border-sm"></span> Menyimpan...';
+    gas(isIn?'submitKacaInbound':'submitKacaOutbound', STATE.token, f).then(res=>{
+      btn.disabled=false; btn.textContent='Simpan';
+      if(res.ok){ toast(res.message,'success'); STATE.cache={}; formKaca(mode); }
+      else toast(res.message, res.warning?'warning':'error');
+    }).catch(e=>{ btn.disabled=false; btn.textContent='Simpan'; toast(e.message,'error'); });
+  });
+}
+PAGES['form-kaca-in']=()=>formKaca('in');
+PAGES['form-kaca-out']=()=>formKaca('out');
+
+function formPallet(mode){
+  if(!STATE.master){ document.getElementById('content').innerHTML='<div class="alert alert-warning">Masterdata belum termuat.</div>'; return; }
+  const m=STATE.master, isIn=mode==='in';
+  const tips = isIn
+    ? ['Field bertanda <b>*</b> wajib diisi.','Pilih <b>Pallet</b> dan isi <b>Nomor Pallet</b>.','Qty biasanya <b>1</b> bila pelacakan per nomor pallet.','Customer opsional — diisi bila ini pengembalian pallet.']
+    : ['Field bertanda <b>*</b> wajib diisi.','Transaksi <b>ditolak</b> bila kombinasi <b>Pallet / Merk / Nomor Pallet</b> belum terdaftar di Tracking Nomer Pallet.','Transaksi <b>ditolak</b> bila kolom <b>Status</b> pallet tsb masih kosong di Tracking.','Customer opsional — tujuan balikan pallet.'];
+  document.getElementById('content').innerHTML=
+    '<div class="row g-3">'+
+    '<div class="col-lg-8"><div class="card card-pane"><div class="card-body"><h5 class="mb-3">'+(isIn?'Form Barang Masuk Pallet':'Form Barang Keluar Pallet')+'</h5>'+
+    '<div class="row g-3">'+
+    '<div class="col-md-6"><label class="form-label small">Tanggal *</label><input type="date" id="fpDate" class="form-control" value="'+today()+'"></div>'+
+    '<div class="col-md-6"><label class="form-label small">Pallet *</label><select id="fpJenis" class="form-select">'+opt(m.pallet)+'</select></div>'+
+    '<div class="col-md-6"><label class="form-label small">Merk *</label><select id="fpMerk" class="form-select">'+opt(m.merk)+'</select></div>'+
+    '<div class="col-md-6"><label class="form-label small">Nomor Pallet *</label><input type="text" inputmode="numeric" id="fpNomor" class="form-control" placeholder="mis. 0040"></div>'+
+    '<div class="col-md-6"><label class="form-label small">Qty '+(isIn?'Masuk':'Keluar')+' *</label><input type="number" min="1" id="fpQty" class="form-control" value="1"></div>'+
+    '<div class="col-md-6"><label class="form-label small">Jenis Dokumen *</label><select id="fpJenisDok" class="form-select"><option value="">-- pilih --</option>'+(m.jenisDokPallet||[]).map(o=>'<option>'+esc(o)+'</option>').join('')+'</select></div>'+
+    '<div class="col-md-6"><label class="form-label small">Nomor Dokumen *</label><input type="text" id="fpNoDok" class="form-control"></div>'+
+    '<div class="col-md-6"><label class="form-label small">Customer (Tujuan Balikan)</label><select id="fpCust" class="form-select">'+opt(m.customer)+'</select></div>'+
+    '</div><div class="mt-3"><button class="btn btn-primary" style="background:var(--sg-navy);border:0" id="fpSubmit">Simpan</button></div></div></div></div>'+
+    '<div class="col-lg-4">'+panduan(tips)+'</div>'+
+    '</div>';
+  $('#fpJenis,#fpMerk,#fpCust').select2({width:'100%', tags:true, placeholder:'-- pilih --'});
+  document.getElementById('fpSubmit').addEventListener('click',function(){
+    const btn=this; const f={ date:document.getElementById('fpDate').value, pallet:$('#fpJenis').val(),
+      merk:$('#fpMerk').val(),
+      nomorPallet:document.getElementById('fpNomor').value, qty:document.getElementById('fpQty').value,
+      jenisDokumen:document.getElementById('fpJenisDok').value, nomorDokumen:document.getElementById('fpNoDok').value,
+      customer:$('#fpCust').val() };
+    btn.disabled=true; btn.innerHTML='<span class="spinner-border spinner-border-sm"></span> Menyimpan...';
+    gas(isIn?'submitPalletInbound':'submitPalletOutbound', STATE.token, f).then(res=>{
+      btn.disabled=false; btn.textContent='Simpan';
+      if(res.ok){ toast(res.message,'success'); STATE.cache={}; formPallet(mode); }
+      else toast(res.message, res.warning?'warning':'error');
+    }).catch(e=>{ btn.disabled=false; btn.textContent='Simpan'; toast(e.message,'error'); });
+  });
+}
+PAGES['form-pallet-in']=()=>formPallet('in');
+PAGES['form-pallet-out']=()=>formPallet('out');
+</script>
+</body>
+</html>

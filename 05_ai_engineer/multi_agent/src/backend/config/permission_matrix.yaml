@@ -1,0 +1,55 @@
+# Permission Matrix: Role -> (agents, data_stores, tools, quota)
+# Edit sesuai struktur organisasi perusahaan Anda.
+# Wildcard "*" mengizinkan semua.
+
+roles:
+  guest:
+    # Default deny: user tanpa role yang terdaftar
+    allowed_agents: []
+    allowed_data_stores: []
+    max_turns_per_day: 0
+    can_use_tools: []
+
+  technician_maintenance:
+    allowed_agents: [fmea_agent, production_agent]
+    allowed_data_stores: [fmea-data_1789894369425, production-data]
+    max_turns_per_day: 100
+    can_use_tools: [search_fmea, get_asset_info, search_production]
+
+  hr_staff:
+    allowed_agents: [hr_agent]
+    allowed_data_stores: [hr-data]
+    max_turns_per_day: 50
+    can_use_tools: [search_employee, get_leave_balance]
+
+  finance_staff:
+    allowed_agents: [finance_agent]
+    allowed_data_stores: [finance-data]
+    max_turns_per_day: 100
+    can_use_tools: [search_invoice, get_budget]
+
+  production_staff:
+    allowed_agents: [production_agent, fmea_agent]
+    allowed_data_stores: [production-data, fmea-data_1789894369425]
+    max_turns_per_day: 100
+    can_use_tools: [search_production, search_fmea, get_asset_info]
+
+  sales_staff:
+    allowed_agents: [sales_agent]
+    allowed_data_stores: [crm-data]
+    max_turns_per_day: 100
+    can_use_tools: [search_customer, get_order_status]
+
+  manager:
+    # Akses penuh lintas departemen
+    allowed_agents: [fmea_agent, hr_agent, finance_agent, production_agent, sales_agent]
+    allowed_data_stores: ["*"]
+    max_turns_per_day: 500
+    can_use_tools: ["*"]
+
+  admin:
+    # Super user: termasuk manage RBAC itu sendiri
+    allowed_agents: ["*"]
+    allowed_data_stores: ["*"]
+    max_turns_per_day: 1000
+    can_use_tools: ["*"]

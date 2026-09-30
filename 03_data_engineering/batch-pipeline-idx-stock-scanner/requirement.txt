@@ -1,5 +1,0 @@
-pandas
-numpy
-yfinance
-google-cloud-bigquery
-pytz
