@@ -502,9 +502,22 @@ def detect_fvg(df):
     return fvg_list
 
 
-def calculate_premium_discount_zones(df):
-    trailing_top = float(df["High"].cummax().iloc[-1])
-    trailing_bottom = float(df["Low"].cummin().iloc[-1])
+def calculate_premium_discount_zones(df, trailing_top=None, trailing_bottom=None):
+    if trailing_top is None or (isinstance(trailing_top, float) and np.isnan(trailing_top)):
+        swing = calculate_swing_strength(df)
+        trailing_top = swing["swing_high_price"]
+        if trailing_bottom is None or (isinstance(trailing_bottom, float) and np.isnan(trailing_bottom)):
+            trailing_bottom = swing["swing_low_price"]
+    if trailing_bottom is None or (isinstance(trailing_bottom, float) and np.isnan(trailing_bottom)):
+        trailing_bottom = calculate_swing_strength(df)["swing_low_price"]
+    if trailing_top is None or (isinstance(trailing_top, float) and np.isnan(trailing_top)) or not np.isfinite(trailing_top):
+        trailing_top = float(df["High"].cummax().iloc[-1])
+    else:
+        trailing_top = float(trailing_top)
+    if trailing_bottom is None or (isinstance(trailing_bottom, float) and np.isnan(trailing_bottom)) or not np.isfinite(trailing_bottom):
+        trailing_bottom = float(df["Low"].cummin().iloc[-1])
+    else:
+        trailing_bottom = float(trailing_bottom)
 
     return {
         "trailing_top": trailing_top,
