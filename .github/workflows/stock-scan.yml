@@ -24,6 +24,11 @@ on:
 permissions:
   contents: read
 
+# Mengatur lokasi kerja default ke subfolder project Anda
+defaults:
+  run:
+    working-directory: 03_data_engineering/batch-pipeline-idx-stock-scanner
+
 jobs:
   scan:
     runs-on: ubuntu-latest
@@ -46,6 +51,7 @@ jobs:
         with:
           python-version: "3.11"
           cache: pip
+          cache-dependency-path: 03_data_engineering/batch-pipeline-idx-stock-scanner/requirements.txt
 
       - name: Install dependencies
         run: python -m pip install -r requirements.txt
