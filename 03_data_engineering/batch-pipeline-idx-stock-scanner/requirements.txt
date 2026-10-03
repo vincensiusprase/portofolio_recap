@@ -3,4 +3,5 @@ numpy
 yfinance
 google-cloud-bigquery
 pytz
+pyarrow
 python-dotenv
