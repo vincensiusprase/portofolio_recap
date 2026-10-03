@@ -1,3 +1,4 @@
+import argparse
 import json
 import os
 import warnings
@@ -7,17 +8,21 @@ import numpy as np
 import pandas as pd
 import pytz
 import yfinance as yf
+from dotenv import load_dotenv
 from google.api_core.exceptions import NotFound
 from google.cloud import bigquery
 from google.oauth2 import service_account
 
 from src.sectors import SECTOR_CONFIG
 
+# Load environment variables from .env file
+load_dotenv()
+
 warnings.filterwarnings("ignore")
 
-GCP_PROJECT_ID = os.environ.get("GCP_PROJECT_ID", "project-1-474502")
-BQ_DATASET_ID = os.environ.get("BQ_DATASET_ID", "saham_analytics")
-BQ_TABLE_NAME = os.environ.get("BQ_TABLE_NAME", "fact_ott_scanner_daily")
+GCP_PROJECT_ID = os.environ.get("GCP_PROJECT_ID")
+BQ_DATASET_ID = os.environ.get("BQ_DATASET_ID")
+BQ_TABLE_NAME = os.environ.get("BQ_TABLE_NAME")
 
 OTT_PERIOD = 2
 OTT_PERCENT = 1.4
@@ -31,6 +36,15 @@ ATR_MULTIPLIER_TP = 2.0
 TL_LENGTH = 14
 TL_MULT = 1.0
 TL_CALC_METHOD = "Atr"
+
+# Filter likuiditas pra-eksekusi (nilai transaksi dalam IDR, harga IDX dalam IDR).
+# Naikkan MIN_MEDIAN_TURNOVER_20D ke 5_000_000_000 untuk ukuran posisi lebih besar.
+LIQUIDITY_MIN_MEDIAN_TURNOVER_20D = 1_000_000_000.0
+LIQUIDITY_MAX_ZERO_VOLUME_RATIO_60D = 0.05
+LIQUIDITY_MIN_PRICE = 50.0
+LIQUIDITY_MAX_STALE_DAYS = 5
+LIQUIDITY_LIMIT_MOVE_PCT = 0.20
+LIQUIDITY_MAX_LIMIT_MOVE_DAYS_20D = 3
 
 BQ_SCHEMA = [
     {"name": "scan_date", "type": "DATE", "mode": "REQUIRED"},
@@ -101,13 +115,12 @@ def remove_duplicate_rows_for_date(client, df_data, dataset_id, table_name):
         f"SELECT DISTINCT scan_date, ticker FROM `{table_id}` "
         "WHERE scan_date = @scan_date"
     )
-    job_config = bigquery.QueryJobConfig(params={"scan_date": target_date.isoformat()})
+    job_config = bigquery.QueryJobConfig(
+        query_parameters=[bigquery.ScalarQueryParameter("scan_date", "DATE", target_date)]
+    )
 
-    try:
-        rows = client.query(query, job_config=job_config).result()
-        existing_keys = {(row.scan_date.isoformat(), row.ticker) for row in rows}
-    except Exception:
-        existing_keys = set()
+    rows = client.query(query, job_config=job_config).result()
+    existing_keys = {(row.scan_date.isoformat(), row.ticker) for row in rows}
 
     def is_duplicate(row):
         return (row["scan_date"].isoformat(), row["ticker"]) in existing_keys
@@ -128,6 +141,10 @@ def save_to_bigquery(df_data, dataset_id, table_name):
     table_id = f"{GCP_PROJECT_ID}.{dataset_id}.{table_name}"
 
     df_data = normalize_column_names(df_data)
+    schema_columns = [field["name"] for field in BQ_SCHEMA]
+    existing_cols = [col for col in schema_columns if col in df_data.columns]
+    df_data = df_data[existing_cols].copy()
+
     if "scan_date" in df_data.columns:
         df_data["scan_date"] = pd.to_datetime(df_data["scan_date"], errors="coerce").dt.date
     if "created_at" in df_data.columns:
@@ -148,6 +165,7 @@ def save_to_bigquery(df_data, dataset_id, table_name):
         print(f"✅ Sukses menambahkan {len(df_data)} baris data ke BigQuery: {table_id}")
     except Exception as exc:
         print(f"❌ Gagal mengunggah data ke BigQuery: {exc}")
+        raise
 
 
 def calculate_ott(df, length=2, percent=1.4):
@@ -253,17 +271,114 @@ def get_parsed_hl(df, atr_200):
     return pd.Series(parsed_high, index=df.index), pd.Series(parsed_low, index=df.index)
 
 
+def calculate_leg(df, size):
+    high = df["High"].to_numpy()
+    low = df["Low"].to_numpy()
+    leg = np.zeros(len(df), dtype=int)
+
+    for i in range(size, len(df)):
+        prev_high_window = high[max(0, i - size): i]
+        prev_low_window = low[max(0, i - size): i]
+
+        if len(prev_high_window) > 0 and high[i] > np.max(prev_high_window):
+            leg[i] = 0
+        elif len(prev_low_window) > 0 and low[i] < np.min(prev_low_window):
+            leg[i] = 1
+
+    return pd.Series(leg, index=df.index)
+
+
 def get_swing_points(df, length):
-    win = 2 * length + 1
-    roll_max = df["High"].rolling(window=win, center=True).max()
-    roll_min = df["Low"].rolling(window=win, center=True).min()
-    return (df["High"] == roll_max), (df["Low"] == roll_min)
+    leg = calculate_leg(df, length)
+    swing_high = pd.Series(False, index=df.index)
+    swing_low = pd.Series(False, index=df.index)
+
+    for i in range(1, len(df)):
+        prev_leg = leg.iloc[i - 1]
+        curr_leg = leg.iloc[i]
+        if prev_leg != curr_leg:
+            if curr_leg == 1:
+                swing_low.iloc[i] = True
+            else:
+                swing_high.iloc[i] = True
+
+    return swing_high, swing_low
+
+
+def calculate_swing_strength(df, length=SWING_LENGTH):
+    highs = df["High"].to_numpy(dtype=float)
+    lows = df["Low"].to_numpy(dtype=float)
+    closes = df["Close"].to_numpy(dtype=float)
+
+    leg = 0
+    swing_high = None
+    swing_low = None
+    high_crossed = False
+    low_crossed = False
+    swing_bias = 0
+    trailing_top = None
+    trailing_bottom = None
+
+    for i in range(len(df)):
+        if trailing_top is not None and np.isfinite(highs[i]):
+            trailing_top = max(trailing_top, highs[i])
+        if trailing_bottom is not None and np.isfinite(lows[i]):
+            trailing_bottom = min(trailing_bottom, lows[i])
+
+        if i >= length:
+            pivot_idx = i - length
+            window_high = highs[pivot_idx + 1:i + 1]
+            window_low = lows[pivot_idx + 1:i + 1]
+            next_leg = leg
+
+            if (
+                np.isfinite(highs[pivot_idx])
+                and np.isfinite(window_high).all()
+                and highs[pivot_idx] > np.max(window_high)
+            ):
+                next_leg = 0
+            elif (
+                np.isfinite(lows[pivot_idx])
+                and np.isfinite(window_low).all()
+                and lows[pivot_idx] < np.min(window_low)
+            ):
+                next_leg = 1
+
+            if next_leg != leg:
+                leg = next_leg
+                if leg == 1:
+                    swing_low = lows[pivot_idx]
+                    low_crossed = False
+                    trailing_bottom = swing_low
+                else:
+                    swing_high = highs[pivot_idx]
+                    high_crossed = False
+                    trailing_top = swing_high
+
+        if i == 0 or not np.isfinite(closes[i - 1]) or not np.isfinite(closes[i]):
+            continue
+
+        if swing_high is not None and not high_crossed:
+            if closes[i - 1] <= swing_high and closes[i] > swing_high:
+                high_crossed = True
+                swing_bias = 1
+
+        if swing_low is not None and not low_crossed:
+            if closes[i - 1] >= swing_low and closes[i] < swing_low:
+                low_crossed = True
+                swing_bias = -1
+
+    return {
+        "swing_high_type": "Strong High" if swing_bias == -1 else "Weak High",
+        "swing_high_price": trailing_top if trailing_top is not None else np.nan,
+        "swing_low_type": "Strong Low" if swing_bias == 1 else "Weak Low",
+        "swing_low_price": trailing_bottom if trailing_bottom is not None else np.nan,
+    }
 
 
 def detect_structure_and_ob(df, parsed_high, parsed_low, swing_high, swing_low):
-    closes, highs, lows = df["Close"].values, df["High"].values, df["Low"].values
-    ph_arr, pl_arr = parsed_high.values, parsed_low.values
-    sh_arr, sl_arr = swing_high.values, swing_low.values
+    closes, highs, lows = df["Close"].to_numpy(), df["High"].to_numpy(), df["Low"].to_numpy()
+    ph_arr, pl_arr = parsed_high.to_numpy(), parsed_low.to_numpy()
     n = len(df)
 
     last_sh_price, last_sh_idx = np.nan, -1
@@ -271,37 +386,35 @@ def detect_structure_and_ob(df, parsed_high, parsed_low, swing_high, swing_low):
     sh_crossed, sl_crossed = False, False
     order_blocks = []
 
-    for i in range(n):
-        if sh_arr[i]:
+    for i in range(1, n):
+        if swing_high.iloc[i]:
             last_sh_price, last_sh_idx, sh_crossed = highs[i], i, False
-        if sl_arr[i]:
+        if swing_low.iloc[i]:
             last_sl_price, last_sl_idx, sl_crossed = lows[i], i, False
 
-        if not np.isnan(last_sh_price) and closes[i] > last_sh_price and not sh_crossed and last_sh_idx >= 0:
+        if not np.isnan(last_sh_price) and closes[i] > last_sh_price and not sh_crossed and last_sh_idx >= 0 and i > last_sh_idx:
             sh_crossed = True
-            if i > last_sh_idx:
-                segment = pl_arr[last_sh_idx:i]
-                local_idx = int(np.argmin(segment))
-                ob_idx = last_sh_idx + local_idx
+            segment = pl_arr[last_sh_idx:i + 1]
+            if segment.size > 0:
+                ob_idx = last_sh_idx + int(np.argmin(segment))
                 order_blocks.append({
                     "type": "Bullish",
-                    "ob_high": ph_arr[ob_idx],
-                    "ob_low": pl_arr[ob_idx],
-                    "ob_idx": ob_idx,
+                    "ob_high": float(ph_arr[ob_idx]),
+                    "ob_low": float(pl_arr[ob_idx]),
+                    "ob_idx": int(ob_idx),
                     "active": True,
                 })
 
-        if not np.isnan(last_sl_price) and closes[i] < last_sl_price and not sl_crossed and last_sl_idx >= 0:
+        if not np.isnan(last_sl_price) and closes[i] < last_sl_price and not sl_crossed and last_sl_idx >= 0 and i > last_sl_idx:
             sl_crossed = True
-            if i > last_sl_idx:
-                segment = ph_arr[last_sl_idx:i]
-                local_idx = int(np.argmax(segment))
-                ob_idx = last_sl_idx + local_idx
+            segment = ph_arr[last_sl_idx:i + 1]
+            if segment.size > 0:
+                ob_idx = last_sl_idx + int(np.argmax(segment))
                 order_blocks.append({
                     "type": "Bearish",
-                    "ob_high": ph_arr[ob_idx],
-                    "ob_low": pl_arr[ob_idx],
-                    "ob_idx": ob_idx,
+                    "ob_high": float(ph_arr[ob_idx]),
+                    "ob_low": float(pl_arr[ob_idx]),
+                    "ob_idx": int(ob_idx),
                     "active": True,
                 })
 
@@ -319,15 +432,39 @@ def detect_structure_and_ob(df, parsed_high, parsed_low, swing_high, swing_low):
 
 
 def detect_fvg(df):
-    closes, highs, lows = df["Close"].values, df["High"].values, df["Low"].values
+    closes, opens, highs, lows = (
+        df["Close"].to_numpy(),
+        df["Open"].to_numpy(),
+        df["High"].to_numpy(),
+        df["Low"].to_numpy(),
+    )
     n = len(df)
     fvg_list = []
 
     for i in range(2, n):
-        if lows[i] > highs[i - 2] and closes[i - 1] > highs[i - 2]:
-            fvg_list.append({"type": "Bullish", "top": lows[i], "bottom": highs[i - 2], "idx": i, "active": True})
-        if highs[i] < lows[i - 2] and closes[i - 1] < lows[i - 2]:
-            fvg_list.append({"type": "Bearish", "top": lows[i - 2], "bottom": highs[i], "idx": i, "active": True})
+        if not np.isfinite(opens[i - 1]) or abs(opens[i - 1]) < 1e-9:
+            continue
+
+        bar_delta_percent = (closes[i - 1] - opens[i - 1]) / (opens[i - 1] * 100.0)
+        recent_delta = np.abs(np.diff(closes[max(0, i - 20):i + 1]))
+        threshold = float(np.mean(recent_delta) / 100.0) if len(recent_delta) > 0 else 0.0
+
+        if lows[i] > highs[i - 2] and closes[i - 1] > highs[i - 2] and bar_delta_percent > threshold:
+            fvg_list.append({
+                "type": "Bullish",
+                "top": float(max(lows[i], highs[i - 2])),
+                "bottom": float(min(lows[i], highs[i - 2])),
+                "idx": i,
+                "active": True,
+            })
+        if highs[i] < lows[i - 2] and closes[i - 1] < lows[i - 2] and -bar_delta_percent > threshold:
+            fvg_list.append({
+                "type": "Bearish",
+                "top": float(max(highs[i], lows[i - 2])),
+                "bottom": float(min(highs[i], lows[i - 2])),
+                "idx": i,
+                "active": True,
+            })
 
     for fvg in fvg_list:
         start = fvg["idx"] + 1
@@ -343,8 +480,8 @@ def detect_fvg(df):
 
 
 def calculate_premium_discount_zones(df):
-    trailing_top = float(df["High"].max())
-    trailing_bottom = float(df["Low"].min())
+    trailing_top = float(df["High"].cummax().iloc[-1])
+    trailing_bottom = float(df["Low"].cummin().iloc[-1])
 
     return {
         "trailing_top": trailing_top,
@@ -442,10 +579,184 @@ def calculate_trendlines(df, length=14, mult=1.0, calc_method="Atr"):
     df["TL_Breakout"] = tl_breakout
     return df
 
+def passes_liquidity_filter(df, execution_time):
+    """Filter pra-eksekusi: tolak saham tidak liquid. Return (lolos, alasan)."""
+    if "Volume" not in df.columns:
+        return False, "tanpa kolom Volume"
+    if df["Close"].isna().all() or df["Volume"].isna().all():
+        return False, "Close/Volume kosong"
 
-def analyze_sector(sector_name, ticker_list):
-    tz_jkt = pytz.timezone("Asia/Jakarta")
-    execution_time = datetime.now(tz_jkt)
+    price_today = float(df["Close"].iloc[-1])
+    if pd.isna(price_today) or price_today < LIQUIDITY_MIN_PRICE:
+        return False, f"harga {price_today} < min {LIQUIDITY_MIN_PRICE}"
+
+    turnover_20d = (df["Close"] * df["Volume"]).tail(20)
+    median_turnover = float(turnover_20d.median())
+    if pd.isna(median_turnover) or median_turnover < LIQUIDITY_MIN_MEDIAN_TURNOVER_20D:
+        return False, f"median turnover 20d {median_turnover:,.0f} < min"
+
+    vol_60d = df["Volume"].tail(60)
+    zero_ratio = float((vol_60d.fillna(0) == 0).mean())
+    if pd.isna(zero_ratio) or zero_ratio > LIQUIDITY_MAX_ZERO_VOLUME_RATIO_60D:
+        return False, f"zero-volume 60d {zero_ratio:.1%} > maks"
+
+    date_col = "Date" if "Date" in df.columns else ("date" if "date" in df.columns else None)
+    if date_col is None:
+        return False, "tanpa kolom tanggal"
+    last_bar_date = pd.to_datetime(df[date_col].iloc[-1], errors="coerce")
+    if pd.isna(last_bar_date):
+        return False, "tanggal terakhir invalid"
+    stale_days = (execution_time.date() - last_bar_date.date()).days
+    if stale_days < 0 or stale_days > LIQUIDITY_MAX_STALE_DAYS:
+        return False, f"data basi {stale_days} hari"
+
+    prev_close = df["Close"].shift(1).tail(20)
+    daily_move = (df["Close"].tail(20) / prev_close - 1).abs()
+    limit_days = int((daily_move >= LIQUIDITY_LIMIT_MOVE_PCT).sum())
+    if limit_days > LIQUIDITY_MAX_LIMIT_MOVE_DAYS_20D:
+        return False, f"{limit_days} limit-move 20d > maks"
+
+    return True, "lolos"
+
+def build_smc_summary_row(ticker, sector_name, df, execution_time, active_obs=None, active_fvg=None):
+    if active_obs is None:
+        active_obs = []
+    if active_fvg is None:
+        active_fvg = []
+
+    price_today = float(df["Close"].iloc[-1])
+    var_today = float(df["VAR"].iloc[-1])
+    ott_today = float(df["OTT"].iloc[-1])
+    wt1_today = float(df["WT1"].iloc[-1])
+    wt2_today = float(df["WT2"].iloc[-1])
+    wt1_prev = float(df["WT1"].iloc[-2])
+    wt2_prev = float(df["WT2"].iloc[-2])
+    trend = "UPTREND" if var_today > ott_today else "DOWNTREND"
+
+    zones = calculate_premium_discount_zones(df)
+    swing_strength = calculate_swing_strength(df)
+    price_zone = get_price_zone(price_today, zones)
+    is_discount = price_today <= zones["discount_top"]
+    is_premium = price_today >= zones["premium_bottom"]
+
+    bullish_ob = [ob for ob in active_obs if ob["type"] == "Bullish"]
+    bearish_ob = [ob for ob in active_obs if ob["type"] == "Bearish"]
+    bullish_fvg = [fvg for fvg in active_fvg if fvg["type"] == "Bullish"]
+    bearish_fvg = [fvg for fvg in active_fvg if fvg["type"] == "Bearish"]
+
+    bull_ob_active = len(bullish_ob) > 0 and any(ob["ob_low"] <= price_today <= ob["ob_high"] for ob in bullish_ob)
+    bear_ob_active = len(bearish_ob) > 0 and any(ob["ob_low"] <= price_today <= ob["ob_high"] for ob in bearish_ob)
+    bull_fvg_active = len(bullish_fvg) > 0 and any(fvg["bottom"] <= price_today <= fvg["top"] for fvg in bullish_fvg)
+    bear_fvg_active = len(bearish_fvg) > 0 and any(fvg["bottom"] <= price_today <= fvg["top"] for fvg in bearish_fvg)
+
+    tl_breakout_today = int(df["TL_Breakout"].iloc[-1])
+    tl_breakout_score = 30 if tl_breakout_today == 1 else (-30 if tl_breakout_today == -1 else 0)
+
+    smc_status = "⚪ Outside SMC Confluence"
+    smc_score = 0
+    if bull_ob_active:
+        smc_status = "🟢 Bullish OB Active"
+        smc_score += 40
+    elif bull_fvg_active:
+        smc_status = "🟢 Bullish FVG Active"
+        smc_score += 30
+    elif bear_ob_active:
+        smc_status = "🔴 Bearish OB Active"
+        smc_score -= 40
+    elif bear_fvg_active:
+        smc_status = "🔴 Bearish FVG Active"
+        smc_score -= 30
+
+    if is_discount and trend == "UPTREND":
+        smc_score += 15
+    if is_premium and trend == "DOWNTREND":
+        smc_score -= 15
+
+    score = smc_score + (50 if trend == "UPTREND" else -50) + tl_breakout_score
+    if is_discount:
+        score += 25
+    elif is_premium:
+        score -= 25
+
+    if score >= 60:
+        action = "🔥 SNIPER BUY"
+    elif score >= 20:
+        action = "🟢 BUY"
+    elif score <= -60:
+        action = "🔥 SNIPER SELL"
+    elif score <= -20:
+        action = "🔴 SELL"
+    else:
+        action = "⏳ WAIT"
+
+    return {
+        "scan_date": execution_time.date(),
+        "created_at": execution_time,
+        "sector": sector_name,
+        "ticker": ticker,
+        "trend_ott": trend,
+        "wave_trend": "Bullish" if wt1_today > wt2_today else "Bearish",
+        "structure_bias": "Bullish" if (var_today > ott_today and (wt1_today > wt2_today or tl_breakout_today == 1)) else "Bearish" if (var_today < ott_today and (wt1_today < wt2_today or tl_breakout_today == -1)) else "Neutral",
+        "price_today": float(price_today),
+        "var_mavg": round(var_today, 2),
+        "ott_line": round(ott_today, 2),
+        "wt1": round(wt1_today, 2),
+        "wt2": round(wt2_today, 2),
+        "wt_delta": round(wt1_today - wt2_today, 2),
+        "price_zone": price_zone,
+        **swing_strength,
+        "premium_top": round(zones["premium_top"], 2),
+        "premium_bottom": round(zones["premium_bottom"], 2),
+        "equilibrium": round(zones["equilibrium"], 2),
+        "discount_top": round(zones["discount_top"], 2),
+        "discount_bottom": round(zones["discount_bottom"], 2),
+        "smc_status": smc_status,
+        "bullish_ob_active": bull_ob_active,
+        "bearish_ob_active": bear_ob_active,
+        "bullish_fvg_active": bull_fvg_active,
+        "bearish_fvg_active": bear_fvg_active,
+        "bullish_ob_count": len(bullish_ob),
+        "bearish_ob_count": len(bearish_ob),
+        "bullish_fvg_count": len(bullish_fvg),
+        "bearish_fvg_count": len(bearish_fvg),
+        "score": int(score),
+        "action": action,
+        "confidence": "High" if abs(score) >= 60 else "Medium" if abs(score) >= 20 else "Low",
+    }
+
+
+def summarize_sector_results(df_sector_results):
+    if df_sector_results.empty:
+        return pd.DataFrame(columns=["sector", "stocks_scanned", "avg_score", "bullish_count", "bearish_count", "neutral_count", "leader_ticker", "leader_score"])
+
+    summary = df_sector_results.groupby("sector", as_index=False).agg(
+        stocks_scanned=("ticker", "count"),
+        avg_score=("score", "mean"),
+        bullish_count=("action", lambda s: int((s.str.contains("BUY|SNIPER", regex=True)).sum())),
+        bearish_count=("action", lambda s: int((s.str.contains("SELL", regex=False)).sum())),
+        neutral_count=("action", lambda s: int((s == "⏳ WAIT").sum())),
+    )
+
+    leader = df_sector_results.sort_values("score", ascending=False).drop_duplicates("sector")
+    leader = leader[["sector", "ticker", "score"]].rename(columns={"ticker": "leader_ticker", "score": "leader_score"})
+    summary = summary.merge(leader, on="sector", how="left")
+    summary["avg_score"] = summary["avg_score"].round(2)
+    return summary.sort_values("avg_score", ascending=False)
+
+
+def summarize_swing_strength(df_results):
+    labels = ["Strong High", "Weak High", "Strong Low", "Weak Low"]
+    counts = pd.concat(
+        [df_results["swing_high_type"], df_results["swing_low_type"]],
+        ignore_index=True,
+    ).value_counts()
+    return pd.DataFrame({"level_type": labels, "count": [int(counts.get(label, 0)) for label in labels]})
+
+
+def analyze_sector(sector_name, ticker_list, execution_time=None):
+    if execution_time is None:
+        tz_jkt = pytz.timezone("Asia/Jakarta")
+        execution_time = datetime.now(tz_jkt)
     results = []
     print(f"\n🚀 Scanning Sektor: {sector_name} | Total: {len(ticker_list)} emiten")
 
@@ -463,9 +774,11 @@ def analyze_sector(sector_name, ticker_list):
 
             df.reset_index(inplace=True)
 
-            df["ATR_14"] = calc_atr(df, ATR_PERIOD_TP)
-            atr_today = float(df["ATR_14"].iloc[-1])
+            liquid, liquid_reason = passes_liquidity_filter(df, execution_time)
+            if not liquid:
+                continue
 
+            df["ATR_14"] = calc_atr(df, ATR_PERIOD_TP)
             df = calculate_ott(df, length=OTT_PERIOD, percent=OTT_PERCENT)
             df = calculate_wavetrend(df, n1=WT_N1, n2=WT_N2)
 
@@ -480,62 +793,8 @@ def analyze_sector(sector_name, ticker_list):
             active_fvg = [f for f in detect_fvg(df) if f["active"]]
 
             df = calculate_trendlines(df, length=TL_LENGTH, mult=TL_MULT, calc_method=TL_CALC_METHOD)
-
-            price_today = float(df["Close"].iloc[-1])
-            var_today = float(df["VAR"].iloc[-1])
-            ott_today = float(df["OTT"].iloc[-1])
-            wt1_today, wt2_today = float(df["WT1"].iloc[-1]), float(df["WT2"].iloc[-1])
-            wt1_prev, wt2_prev = float(df["WT1"].iloc[-2]), float(df["WT2"].iloc[-2])
-
-            zones = calculate_premium_discount_zones(df)
-            price_zone = get_price_zone(price_today, zones)
-            is_discount = price_today <= zones["discount_top"]
-            is_premium = price_today >= zones["premium_bottom"]
-
-            tl_breakout_today = int(df["TL_Breakout"].iloc[-1])
-            tl_breakout_score = 30 if tl_breakout_today == 1 else (-30 if tl_breakout_today == -1 else 0)
-
-            smc_status, smc_score = "⚪ Di Luar Zona", 0
-            for ob in active_obs:
-                if ob["type"] == "Bullish" and ob["ob_low"] <= price_today <= ob["ob_high"]:
-                    smc_status = "🟢 Di Dalam Bullish OB"
-                    smc_score += 40
-                    break
-            if smc_score == 0:
-                for fvg in active_fvg:
-                    if fvg["type"] == "Bullish" and fvg["bottom"] <= price_today <= fvg["top"]:
-                        smc_status = "🟢 Di Dalam Bullish FVG"
-                        smc_score += 30
-                        break
-
-            score = smc_score
-            trend = "UPTREND" if var_today > ott_today else "DOWNTREND"
-            score += 50 if trend == "UPTREND" else -50
-            score += tl_breakout_score
-            score += 30 if is_discount else (-30 if is_premium else 0)
-
-            action = "WAIT"
-            if is_discount and trend == "UPTREND" and smc_score > 0:
-                action = "🔥 SNIPER BUY"
-            elif is_discount and trend == "UPTREND":
-                action = "🟢 BUY"
-            elif is_premium or trend == "DOWNTREND":
-                action = "🔴 HINDARI"
-
-            results.append({
-                "scan_date": execution_time.date(),
-                "created_at": execution_time,
-                "sector": sector_name,
-                "ticker": ticker,
-                "action": action,
-                "score": int(score),
-                "trend_ott": trend,
-                "price_today": float(price_today),
-                "price_zone": price_zone,
-                "smc_status": smc_status,
-                "var_mavg": round(var_today, 2),
-                "ott_line": round(ott_today, 2),
-            })
+            row = build_smc_summary_row(ticker, sector_name, df, execution_time, active_obs=active_obs, active_fvg=active_fvg)
+            results.append(row)
 
         except Exception as exc:
             print(f" -> ❌ Error pada {ticker}: {exc}")
@@ -543,18 +802,85 @@ def analyze_sector(sector_name, ticker_list):
     return pd.DataFrame(results)
 
 
-def main():
-    print("🤖 MEMULAI MARKET SCANNER (TARGET OUTPUT: BIGQUERY APPEND)")
-    all_results = []
+def positive_int(value):
+    parsed = int(value)
+    if parsed < 1:
+        raise argparse.ArgumentTypeError("limit harus lebih besar dari 0")
+    return parsed
 
-    for sector, tickers in SECTOR_CONFIG.items():
-        df_sector = analyze_sector(sector, tickers)
+
+def parse_args(argv=None):
+    parser = argparse.ArgumentParser(description="Scan saham IDX dan simpan hasil ke BigQuery.")
+    parser.add_argument(
+        "--sector",
+        default="ALL",
+        type=str.upper,
+        choices=["ALL", *SECTOR_CONFIG.keys()],
+        help="sektor yang dipindai (default: ALL)",
+    )
+    parser.add_argument(
+        "--limit",
+        type=positive_int,
+        help="jumlah maksimum ticker per sektor",
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="hitung dan tampilkan hasil tanpa upload ke BigQuery",
+    )
+    return parser.parse_args(argv)
+
+
+def resolve_sector_selection(selected_sector="ALL", limit=None):
+    sectors = (
+        SECTOR_CONFIG.items()
+        if selected_sector == "ALL"
+        else [(selected_sector, SECTOR_CONFIG[selected_sector])]
+    )
+    return {
+        sector: tickers[:limit] if limit is not None else tickers
+        for sector, tickers in sectors
+    }
+
+
+def main(argv=None):
+    args = parse_args(argv)
+    target_sectors = resolve_sector_selection(args.sector, args.limit)
+    print("🤖 MEMULAI MARKET SCANNER (GITHUB ACTIONS / CLI)")
+    all_results = []
+    execution_time = datetime.now(pytz.timezone("Asia/Jakarta"))
+
+    for sector, tickers in target_sectors.items():
+        df_sector = analyze_sector(sector, tickers, execution_time=execution_time)
         if not df_sector.empty:
             all_results.append(df_sector)
 
     if all_results:
         df_final = pd.concat(all_results, ignore_index=True)
-        save_to_bigquery(df_final, BQ_DATASET_ID, BQ_TABLE_NAME)
+        sector_summary = summarize_sector_results(df_final)
+        print("\n📊 SECTOR SUMMARY")
+        print(sector_summary.to_string(index=False))
+        print("\n📍 STRONG/WEAK HIGH-LOW SUMMARY")
+        print(summarize_swing_strength(df_final).to_string(index=False))
+        print("\n📈 STOCK SIGNALS")
+        print(df_final.sort_values("score", ascending=False).to_string(index=False))
+        if args.dry_run:
+            print("🧪 Dry run: hasil tidak diunggah ke BigQuery.")
+        else:
+            missing_config = [
+                name
+                for name, value in (
+                    ("GCP_PROJECT_ID", GCP_PROJECT_ID),
+                    ("BQ_DATASET_ID", BQ_DATASET_ID),
+                    ("BQ_TABLE_NAME", BQ_TABLE_NAME),
+                )
+                if not value
+            ]
+            if missing_config:
+                raise RuntimeError(
+                    "Konfigurasi BigQuery belum lengkap: " + ", ".join(missing_config)
+                )
+            save_to_bigquery(df_final, BQ_DATASET_ID, BQ_TABLE_NAME)
     else:
         print("⚠️ Tidak ada data hasil pemindaian yang valid.")
 

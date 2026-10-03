@@ -1,0 +1,63 @@
+name: IDX Stock Scanner
+
+on:
+  workflow_dispatch:
+    inputs:
+      sector:
+        description: Sector to scan
+        required: true
+        default: IDXENERGY
+        type: string
+      limit:
+        description: Maximum tickers per sector (blank scans all)
+        required: false
+        default: "5"
+        type: string
+      dry_run:
+        description: Skip BigQuery upload
+        required: true
+        default: true
+        type: boolean
+  schedule:
+    - cron: "0 10 * * 1-5"
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+      BQ_DATASET_ID: ${{ vars.BQ_DATASET_ID }}
+      BQ_TABLE_NAME: ${{ vars.BQ_TABLE_NAME }}
+      GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+      SCAN_SECTOR: ${{ github.event.inputs.sector || 'ALL' }}
+      SCAN_LIMIT: ${{ github.event.inputs.limit }}
+      DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Run stock scanner
+        shell: bash
+        run: |
+          args=(--sector "$SCAN_SECTOR")
+          if [[ -n "$SCAN_LIMIT" ]]; then
+            args+=(--limit "$SCAN_LIMIT")
+          fi
+          if [[ "$DRY_RUN" == "true" ]]; then
+            args+=(--dry-run)
+          fi
+          python main.py "${args[@]}"

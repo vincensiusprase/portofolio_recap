@@ -30,3 +30,6 @@ __pycache__/
 # OS Generated Files
 Thumbs.db
 .DS_Store
+
+# Folder belum selesai
+05_ai_engineer/multi_agent/

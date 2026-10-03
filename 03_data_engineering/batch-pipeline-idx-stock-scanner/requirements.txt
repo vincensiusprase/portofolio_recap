@@ -3,4 +3,4 @@ numpy
 yfinance
 google-cloud-bigquery
 pytz
-Flask
+python-dotenv
