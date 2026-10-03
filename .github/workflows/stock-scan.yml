@@ -50,11 +50,11 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-          cache: pip
-          cache-dependency-path: 03_data_engineering/batch-pipeline-idx-stock-scanner/requirements.txt
+          # cache: pip
+          # cache-dependency-path: 03_data_engineering/batch-pipeline-idx-stock-scanner/requirements.txt
 
       - name: Install dependencies
-        run: python -m pip install -r requirements.txt
+        run: python -m pip install --no-cache-dir -r requirements.txt
 
       - name: Run stock scanner
         shell: bash
