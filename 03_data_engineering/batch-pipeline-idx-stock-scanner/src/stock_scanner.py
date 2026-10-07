@@ -23,6 +23,7 @@ warnings.filterwarnings("ignore")
 GCP_PROJECT_ID = os.environ.get("GCP_PROJECT_ID")
 BQ_DATASET_ID = os.environ.get("BQ_DATASET_ID")
 BQ_TABLE_NAME = os.environ.get("BQ_TABLE_NAME")
+WIB_TZ = pytz.timezone("Asia/Jakarta")
 
 OTT_PERIOD = 2
 OTT_PERCENT = 1.4
@@ -38,10 +39,9 @@ TL_MULT = 1.0
 TL_CALC_METHOD = "Atr"
 
 # Filter likuiditas pra-eksekusi (nilai transaksi dalam IDR, harga IDX dalam IDR).
-# Naikkan MIN_MEDIAN_TURNOVER_20D ke 5_000_000_000 untuk ukuran posisi lebih besar.
-LIQUIDITY_MIN_MEDIAN_TURNOVER_20D = 1_000_000_000.0
-LIQUIDITY_MAX_ZERO_VOLUME_RATIO_60D = 0.05
-LIQUIDITY_MIN_PRICE = 50.0
+# Naikkan MIN_MEDIAN_TURNOVER_5D ke 5_000_000_000 untuk ukuran posisi lebih besar.
+LIQUIDITY_MIN_MEDIAN_TURNOVER_5D = 1_000_000_000.0
+LIQUIDITY_MIN_PRICE = 20.0
 LIQUIDITY_MAX_STALE_DAYS = 5
 LIQUIDITY_LIMIT_MOVE_PCT = 0.20
 LIQUIDITY_MAX_LIMIT_MOVE_DAYS_20D = 3
@@ -171,7 +171,12 @@ def save_to_bigquery(df_data, dataset_id, table_name):
     if "scan_date" in df_data.columns:
         df_data["scan_date"] = pd.to_datetime(df_data["scan_date"], errors="coerce").dt.date
     if "created_at" in df_data.columns:
-        df_data["created_at"] = pd.to_datetime(df_data["created_at"], errors="coerce")
+        created = pd.to_datetime(df_data["created_at"], errors="coerce")
+        if created.dt.tz is None:
+            created = created.dt.tz_localize(WIB_TZ)
+        else:
+            created = created.dt.tz_convert(WIB_TZ)
+        df_data["created_at"] = created
 
     df_data = remove_duplicate_rows_for_date(client, df_data, dataset_id, table_name)
     if df_data.empty:
@@ -626,15 +631,10 @@ def passes_liquidity_filter(df, execution_time):
     if pd.isna(price_today) or price_today < LIQUIDITY_MIN_PRICE:
         return False, f"harga {price_today} < min {LIQUIDITY_MIN_PRICE}"
 
-    turnover_20d = (df["Close"] * df["Volume"]).tail(20)
-    median_turnover = float(turnover_20d.median())
-    if pd.isna(median_turnover) or median_turnover < LIQUIDITY_MIN_MEDIAN_TURNOVER_20D:
-        return False, f"median turnover 20d {median_turnover:,.0f} < min"
-
-    vol_60d = df["Volume"].tail(60)
-    zero_ratio = float((vol_60d.fillna(0) == 0).mean())
-    if pd.isna(zero_ratio) or zero_ratio > LIQUIDITY_MAX_ZERO_VOLUME_RATIO_60D:
-        return False, f"zero-volume 60d {zero_ratio:.1%} > maks"
+    turnover_5d = (df["Close"] * df["Volume"]).tail(5)
+    median_turnover = float(turnover_5d.median())
+    if pd.isna(median_turnover) or median_turnover < LIQUIDITY_MIN_MEDIAN_TURNOVER_5D:
+        return False, f"median turnover 5d {median_turnover:,.0f} < min"
 
     date_col = "Date" if "Date" in df.columns else ("date" if "date" in df.columns else None)
     if date_col is None:
@@ -725,8 +725,11 @@ def build_smc_summary_row(ticker, sector_name, df, execution_time, active_obs=No
     else:
         action = "⏳ WAIT"
 
+    # Get the last candle's trading date from the DataFrame
+    last_candle_date = pd.to_datetime(df["Date"].iloc[-1]).date()
+
     return {
-        "scan_date": execution_time.date(),
+        "scan_date": last_candle_date,
         "created_at": execution_time,
         "sector": sector_name,
         "ticker": ticker,
@@ -791,8 +794,7 @@ def summarize_swing_strength(df_results):
 
 def analyze_sector(sector_name, ticker_list, execution_time=None):
     if execution_time is None:
-        tz_jkt = pytz.timezone("Asia/Jakarta")
-        execution_time = datetime.now(tz_jkt)
+        execution_time = datetime.now(WIB_TZ)
     results = []
     print(f"\n🚀 Scanning Sektor: {sector_name} | Total: {len(ticker_list)} emiten")
 
@@ -884,7 +886,7 @@ def main(argv=None):
     target_sectors = resolve_sector_selection(args.sector, args.limit)
     print("🤖 MEMULAI MARKET SCANNER (GITHUB ACTIONS / CLI)")
     all_results = []
-    execution_time = datetime.now(pytz.timezone("Asia/Jakarta"))
+    execution_time = datetime.now(WIB_TZ)
 
     for sector, tickers in target_sectors.items():
         df_sector = analyze_sector(sector, tickers, execution_time=execution_time)
