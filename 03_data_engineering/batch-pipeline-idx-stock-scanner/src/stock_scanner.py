@@ -71,14 +71,19 @@ BQ_SCHEMA = [
     {"name": "discount_top", "type": "FLOAT", "mode": "NULLABLE"},
     {"name": "discount_bottom", "type": "FLOAT", "mode": "NULLABLE"},
     {"name": "smc_status", "type": "STRING", "mode": "NULLABLE"},
-    {"name": "bullish_ob_active", "type": "BOOLEAN", "mode": "NULLABLE"},
-    {"name": "bearish_ob_active", "type": "BOOLEAN", "mode": "NULLABLE"},
-    {"name": "bullish_fvg_active", "type": "BOOLEAN", "mode": "NULLABLE"},
-    {"name": "bearish_fvg_active", "type": "BOOLEAN", "mode": "NULLABLE"},
-    {"name": "bullish_ob_count", "type": "INTEGER", "mode": "NULLABLE"},
-    {"name": "bearish_ob_count", "type": "INTEGER", "mode": "NULLABLE"},
-    {"name": "bullish_fvg_count", "type": "INTEGER", "mode": "NULLABLE"},
-    {"name": "bearish_fvg_count", "type": "INTEGER", "mode": "NULLABLE"},
+    {"name": "wt_cross", "type": "STRING", "mode": "NULLABLE"},
+    {"name": "ott_cross_age", "type": "INTEGER", "mode": "NULLABLE"},
+    {"name": "wt_cross_age", "type": "INTEGER", "mode": "NULLABLE"},
+    {"name": "tp1_equilibrium", "type": "FLOAT", "mode": "NULLABLE"},
+    {"name": "tp2_premium", "type": "FLOAT", "mode": "NULLABLE"},
+    {"name": "bull_int_ob_low", "type": "FLOAT", "mode": "NULLABLE"},
+    {"name": "bull_int_ob_high", "type": "FLOAT", "mode": "NULLABLE"},
+    {"name": "bear_int_ob_low", "type": "FLOAT", "mode": "NULLABLE"},
+    {"name": "bear_int_ob_high", "type": "FLOAT", "mode": "NULLABLE"},
+    {"name": "bull_sw_ob_low", "type": "FLOAT", "mode": "NULLABLE"},
+    {"name": "bull_sw_ob_high", "type": "FLOAT", "mode": "NULLABLE"},
+    {"name": "bear_sw_ob_low", "type": "FLOAT", "mode": "NULLABLE"},
+    {"name": "bear_sw_ob_high", "type": "FLOAT", "mode": "NULLABLE"},
     {"name": "score", "type": "INTEGER", "mode": "NULLABLE"},
     {"name": "action", "type": "STRING", "mode": "NULLABLE"},
     {"name": "confidence", "type": "STRING", "mode": "NULLABLE"},
@@ -536,6 +541,21 @@ def calculate_premium_discount_zones(df, trailing_top=None, trailing_bottom=None
         "discount_bottom": trailing_bottom,
     }
 
+def get_cross_age(df, signal_col, target=1):
+    """Umur (bar) sejak cross terakhir bernilai `target`. None jika belum pernah."""
+    signal = df[signal_col].to_numpy()
+    for age, value in enumerate(reversed(signal)):
+        if value == target:
+            return int(age)
+    return None
+
+def get_last_ob_range(obs, ob_type, active_only=False):
+    """Range (low, high) OB terakhir bertipe tertentu; None jika tidak ada."""
+    matched = [ob for ob in obs if ob.get("type") == ob_type and (ob["active"] or not active_only)]
+    if not matched:
+        return None, None
+    last = max(matched, key=lambda ob: ob["ob_idx"])
+    return round(float(last["ob_low"]), 2), round(float(last["ob_high"]), 2)
 
 def get_price_zone(price, zones):
     if price >= zones["premium_bottom"]:
@@ -654,11 +674,13 @@ def passes_liquidity_filter(df, execution_time):
 
     return True, "lolos"
 
-def build_smc_summary_row(ticker, sector_name, df, execution_time, active_obs=None, active_fvg=None):
+def build_smc_summary_row(ticker, sector_name, df, execution_time, active_obs=None, active_fvg=None, all_obs=None):
     if active_obs is None:
         active_obs = []
     if active_fvg is None:
         active_fvg = []
+    if all_obs is None:
+        all_obs = active_obs
 
     price_today = float(df["Close"].iloc[-1])
     var_today = float(df["VAR"].iloc[-1])
@@ -675,6 +697,19 @@ def build_smc_summary_row(ticker, sector_name, df, execution_time, active_obs=No
     is_discount = price_today <= zones["discount_top"]
     is_premium = price_today >= zones["premium_bottom"]
 
+    ott_cross_age = get_cross_age(df, "OTT_Cross", target=1)
+    wt_cross_age = get_cross_age(df, "WT_Cross_Signal", target=1)
+
+    tp1_equilibrium = round(float(zones["equilibrium"]), 2)
+    tp2_premium = round(float(zones["premium_top"]), 2)
+
+    int_obs = [ob for ob in all_obs if ob.get("scope") == "int"]
+    sw_obs = [ob for ob in all_obs if ob.get("scope") == "sw"]
+    bull_int_low, bull_int_high = get_last_ob_range(int_obs, "Bullish")
+    bear_int_low, bear_int_high = get_last_ob_range(int_obs, "Bearish")
+    bull_sw_low, bull_sw_high = get_last_ob_range(sw_obs, "Bullish")
+    bear_sw_low, bear_sw_high = get_last_ob_range(sw_obs, "Bearish")
+
     bullish_ob = [ob for ob in active_obs if ob["type"] == "Bullish"]
     bearish_ob = [ob for ob in active_obs if ob["type"] == "Bearish"]
     bullish_fvg = [fvg for fvg in active_fvg if fvg["type"] == "Bullish"]
@@ -686,42 +721,39 @@ def build_smc_summary_row(ticker, sector_name, df, execution_time, active_obs=No
     bear_fvg_active = len(bearish_fvg) > 0 and any(fvg["bottom"] <= price_today <= fvg["top"] for fvg in bearish_fvg)
 
     tl_breakout_today = int(df["TL_Breakout"].iloc[-1])
-    tl_breakout_score = 30 if tl_breakout_today == 1 else (-30 if tl_breakout_today == -1 else 0)
+    wt_cross_today = int(df["WT_Cross_Signal"].iloc[-1])
+    wt_cross_bullish = wt_cross_today == 1
 
     smc_status = "⚪ Outside SMC Confluence"
-    smc_score = 0
     if bull_ob_active:
         smc_status = "🟢 Bullish OB Active"
-        smc_score += 40
     elif bull_fvg_active:
         smc_status = "🟢 Bullish FVG Active"
-        smc_score += 30
     elif bear_ob_active:
         smc_status = "🔴 Bearish OB Active"
-        smc_score -= 40
     elif bear_fvg_active:
         smc_status = "🔴 Bearish FVG Active"
-        smc_score -= 30
 
-    if is_discount and trend == "UPTREND":
-        smc_score += 15
-    if is_premium and trend == "DOWNTREND":
-        smc_score -= 15
+    # --- SKOR 0-100 (long-only, tanpa short karena IDX tidak ada short selling) ---
+    # Bobot: Discount 35 + WaveTrend cross bullish 30 + Uptrend OTT 20
+    #        + Buffered SMC 10 + Breakout trendline 5
+    score = 0
+    score += 35 if is_discount else 0
+    score += 30 if wt_cross_bullish else 0
+    score += 20 if trend == "UPTREND" else 0
+    if is_discount and trend == "UPTREND" and bull_ob_active:
+        score += 10
+    score += 5 if tl_breakout_today == 1 else 0
+    score = int(max(0, min(100, score)))
 
-    score = smc_score + (50 if trend == "UPTREND" else -50) + tl_breakout_score
-    if is_discount:
-        score += 25
-    elif is_premium:
-        score -= 25
-
-    if score >= 60:
-        action = "🔥 SNIPER BUY"
-    elif score >= 20:
-        action = "🟢 BUY"
-    elif score <= -60:
-        action = "🔥 SNIPER SELL"
-    elif score <= -20:
-        action = "🔴 SELL"
+    # Gate: sinyal beli hanya jika harga di discount DAN ada persilangan bullish WT
+    if is_discount and wt_cross_bullish:
+        if score >= 80:
+            action = "🔥 SNIPER BUY"
+        elif score >= 60:
+            action = "🟢 BUY"
+        else:
+            action = "🟡 WATCH"
     else:
         action = "⏳ WAIT"
 
@@ -750,30 +782,35 @@ def build_smc_summary_row(ticker, sector_name, df, execution_time, active_obs=No
         "discount_top": round(zones["discount_top"], 2),
         "discount_bottom": round(zones["discount_bottom"], 2),
         "smc_status": smc_status,
-        "bullish_ob_active": bull_ob_active,
-        "bearish_ob_active": bear_ob_active,
-        "bullish_fvg_active": bull_fvg_active,
-        "bearish_fvg_active": bear_fvg_active,
-        "bullish_ob_count": len(bullish_ob),
-        "bearish_ob_count": len(bearish_ob),
-        "bullish_fvg_count": len(bullish_fvg),
-        "bearish_fvg_count": len(bearish_fvg),
+        "wt_cross": "Bullish" if wt_cross_bullish else ("Bearish" if wt_cross_today == -1 else "None"),
+        "ott_cross_age": ott_cross_age,
+        "wt_cross_age": wt_cross_age,
+        "tp1_equilibrium": tp1_equilibrium,
+        "tp2_premium": tp2_premium,
+        "bull_int_ob_low": bull_int_low,
+        "bull_int_ob_high": bull_int_high,
+        "bear_int_ob_low": bear_int_low,
+        "bear_int_ob_high": bear_int_high,
+        "bull_sw_ob_low": bull_sw_low,
+        "bull_sw_ob_high": bull_sw_high,
+        "bear_sw_ob_low": bear_sw_low,
+        "bear_sw_ob_high": bear_sw_high,
         "score": int(score),
         "action": action,
-        "confidence": "High" if abs(score) >= 60 else "Medium" if abs(score) >= 20 else "Low",
+        "confidence": "High" if score >= 80 else "Medium" if score >= 60 else "Low",
     }
 
 
 def summarize_sector_results(df_sector_results):
     if df_sector_results.empty:
-        return pd.DataFrame(columns=["sector", "stocks_scanned", "avg_score", "bullish_count", "bearish_count", "neutral_count", "leader_ticker", "leader_score"])
+        return pd.DataFrame(columns=["sector", "stocks_scanned", "avg_score", "buy_count", "watch_count", "wait_count", "leader_ticker", "leader_score"])
 
     summary = df_sector_results.groupby("sector", as_index=False).agg(
         stocks_scanned=("ticker", "count"),
         avg_score=("score", "mean"),
-        bullish_count=("action", lambda s: int((s.str.contains("BUY|SNIPER", regex=True)).sum())),
-        bearish_count=("action", lambda s: int((s.str.contains("SELL", regex=False)).sum())),
-        neutral_count=("action", lambda s: int((s == "⏳ WAIT").sum())),
+        buy_count=("action", lambda s: int(s.isin(["🔥 SNIPER BUY", "🟢 BUY"]).sum())),
+        watch_count=("action", lambda s: int((s == "🟡 WATCH").sum())),
+        wait_count=("action", lambda s: int((s == "⏳ WAIT").sum())),
     )
 
     leader = df_sector_results.sort_values("score", ascending=False).drop_duplicates("sector")
@@ -826,12 +863,16 @@ def analyze_sector(sector_name, ticker_list, execution_time=None):
             sh_sw, sl_sw = get_swing_points(df, SWING_LENGTH)
             obs_int = detect_structure_and_ob(df, parsed_high, parsed_low, sh_int, sl_int)
             obs_sw = detect_structure_and_ob(df, parsed_high, parsed_low, sh_sw, sl_sw)
+            for ob in obs_int:
+                ob["scope"] = "int"
+            for ob in obs_sw:
+                ob["scope"] = "sw"
             all_obs = obs_int + obs_sw
             active_obs = [o for o in all_obs if o["active"]]
             active_fvg = [f for f in detect_fvg(df) if f["active"]]
 
             df = calculate_trendlines(df, length=TL_LENGTH, mult=TL_MULT, calc_method=TL_CALC_METHOD)
-            row = build_smc_summary_row(ticker, sector_name, df, execution_time, active_obs=active_obs, active_fvg=active_fvg)
+            row = build_smc_summary_row(ticker, sector_name, df, execution_time, active_obs=active_obs, active_fvg=active_fvg, all_obs=all_obs)
             results.append(row)
 
         except Exception as exc:
@@ -860,6 +901,11 @@ def parse_args(argv=None):
         "--limit",
         type=positive_int,
         help="jumlah maksimum ticker per sektor",
+    )
+    parser.add_argument(
+        "--only-buy",
+        action="store_true",
+        help="hanya tampilkan/unggah kandidat Buy & Sniper Buy",
     )
     parser.add_argument(
         "--dry-run",
@@ -895,6 +941,13 @@ def main(argv=None):
 
     if all_results:
         df_final = pd.concat(all_results, ignore_index=True)
+        if args.only_buy:
+            df_final = df_final[df_final["action"].isin(["🔥 SNIPER BUY", "🟢 BUY"])].reset_index(drop=True)
+            print(f"\n🎯 Filter --only-buy aktif: {len(df_final)} kandidat BUY")
+        if df_final.empty:
+            print("⚠️ Tidak ada kandidat BUY yang lolos filter.")
+            print("🏁 PROSES SCANNING & INGESTION SELESAI 🏁")
+            return 0
         sector_summary = summarize_sector_results(df_final)
         print("\n📊 SECTOR SUMMARY")
         print(sector_summary.to_string(index=False))

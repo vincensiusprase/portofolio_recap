@@ -25,7 +25,19 @@ Scan satu sektor dan upload ke BigQuery:
 python main.py --sector IDXENERGY --limit 5
 ```
 
-Hilangkan `--limit` untuk memindai semua ticker di sektor itu. Gunakan `--sector ALL` untuk seluruh sektor. Upload adalah perilaku default; `--dry-run` mencegah upload.
+Hilangkan `--limit` untuk memindai semua ticker di sektor itu. Gunakan `--sector ALL` untuk seluruh sektor. Upload adalah perilaku default; `--dry-run` mencegah upload. Tambahkan `--only-buy` untuk hanya menampilkan/mengunggah kandidat `BUY` dan `SNIPER BUY`.
+
+## Migrasi skema BigQuery
+
+Bila `BQ_SCHEMA` di `src/stock_scanner.py` berubah dan tabel BigQuery sudah terlanjur dibuat, jalankan migrasi untuk menyelaraskan kolom tanpa menghapus data:
+
+```powershell
+python -m scripts.migrate_bq_schema --dry-run   # tampilkan DDL saja
+python -m scripts.migrate_bq_schema             # eksekusi migrasi
+python -m scripts.migrate_bq_schema --skip-drop # hanya tambah kolom baru
+```
+
+Skrip menambahkan kolom baru (`IF NOT EXISTS`) dan menghapus kolom lama (`IF EXISTS`), serta melaporkan kolom yang sudah sesuai.
 
 ## GitHub Actions
 
