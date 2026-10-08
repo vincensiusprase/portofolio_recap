@@ -11,7 +11,7 @@ on:
       limit:
         description: Maximum tickers per sector (blank scans all)
         required: false
-        default: "5"
+        default: ""
         type: string
       dry_run:
         description: Skip BigQuery upload
