@@ -63,3 +63,6 @@ build/
 *.temp
 tmp/
 temp/
+
+# Local testing helper (not for CI)
+testing.py

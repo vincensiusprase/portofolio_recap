@@ -6,7 +6,7 @@ on:
       sector:
         description: Sector to scan
         required: true
-        default: IDXENERGY
+        default: ALL
         type: string
       limit:
         description: Maximum tickers per sector (blank scans all)
@@ -19,7 +19,7 @@ on:
         default: true
         type: boolean
   schedule:
-    - cron: "0 11 * * 1-5"    
+    - cron: "0 11 * * 1-5" # 11:00 UTC = 18:00 WIB, Senin-Jumat (hari bursa)
 permissions:
   contents: read
 
@@ -35,10 +35,10 @@ jobs:
       GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
       BQ_DATASET_ID: ${{ vars.BQ_DATASET_ID }}
       BQ_TABLE_NAME: ${{ vars.BQ_TABLE_NAME }}
-      # Perbaikan penanganan default input untuk schedule vs manual dispatch
+      # Scheduled run selalu upload ke BQ; manual mengikuti input dry_run
       SCAN_SECTOR: ${{ inputs.sector || 'ALL' }}
       SCAN_LIMIT: ${{ inputs.limit || '' }}
-      DRY_RUN: ${{ inputs.dry_run != false && 'true' || 'false' }}
+      DRY_RUN: ${{ github.event_name == 'schedule' && 'false' || inputs.dry_run }}
 
     steps:
       - name: Check out repository

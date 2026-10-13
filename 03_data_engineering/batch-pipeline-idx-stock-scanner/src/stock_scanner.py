@@ -844,7 +844,11 @@ def analyze_sector(sector_name, ticker_list, execution_time=None):
             else:
                 df.columns = [str(c).capitalize() for c in df.columns]
 
-            if df.empty or len(df) < 100 or "Close" not in df.columns:
+            if df.empty or "Close" not in df.columns:
+                continue
+
+            df = df.dropna(subset=["Open", "High", "Low", "Close"])
+            if len(df) < 100:
                 continue
 
             df.reset_index(inplace=True)
