@@ -1,0 +1,3 @@
+[submodule "03_data_engineering/fmcg_end_to_end_data_architecture"]
+	path = 03_data_engineering/fmcg_end_to_end_data_architecture
+	url = https://github.com/vincensiusprase/fmcg-dataform-pipeline.git
