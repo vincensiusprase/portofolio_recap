@@ -1,0 +1,121 @@
+promotion_id,promotion_name,promotion_type,product_id,start_date,end_date,discount_percentage,discount_per_unit_idr,minimum_purchase_units,bundle_quantity,bundle_price_idr,target_outlet_type,target_region,marketing_spend_idr,promotion_objective
+PR-2024-001,BOGO Biskuit Marie 200g Nov 2024,BOGO,P006,2024-11-30,2024-12-06,,,1,2.0,6000.0,Warung,Sumatra,22300000.0,Volume
+PR-2026-002,Bundle Crackers Keju 100g Apr 2026,Bundle,P011,2026-04-18,2026-05-01,,,4,4.0,9600.0,Wholesaler,All,34400000.0,Trial
+PR-2024-003,BOGO Biskuit Sandwich Cokelat 100g Sep 2024,BOGO,P001,2024-09-27,2024-10-24,,,1,2.0,4900.0,Warung,Kalimantan,26400000.0,Trial
+PR-2024-004,Bundle Biskuit Assorted Toples 500g Mar 2024,Bundle,P010,2024-03-31,2024-04-06,,,4,4.0,42000.0,Grocery Store,All,8000000.0,Distribution
+PR-2026-005,Price Discount Wafer Cokelat 30g Aug 2026,Price Discount,P008,2026-08-15,2026-08-28,5.0,,1,,,Supermarket,All,9000000.0,Share of Shelf
+PR-2024-006,Display Incentive Biskuit Assorted Toples 500g May 2024,Display Incentive,P010,2024-05-20,2024-06-16,,,1,,,Supermarket,Sumatra,29400000.0,Volume
+PR-2024-007,Price Discount Biskuit Marie Mini 25g Mar 2024,Price Discount,P007,2024-03-21,2024-03-27,20.0,,1,,,Grocery Store,Java,9600000.0,Trial
+PR-2026-008,Trade Promotion Biskuit Sandwich Cokelat 100g May 2026,Trade Promotion,P001,2026-05-13,2026-06-09,,300.0,24,,,Warung,Sumatra,26400000.0,Volume
+PR-2025-009,Trade Promotion Biskuit Marie 200g Nov 2025,Trade Promotion,P006,2025-11-19,2025-12-02,,400.0,24,,,All,All,24500000.0,Trial
+PR-2025-010,Bundle Biskuit Kelapa 65g Aug 2025,Bundle,P004,2025-08-12,2025-08-18,,,4,4.0,6000.0,All,Java,22000000.0,Distribution
+PR-2026-011,Price Discount Biskuit Marie Mini 25g Feb 2026,Price Discount,P007,2026-02-13,2026-03-05,10.0,,1,,,Grocery Store,All,12000000.0,Volume
+PR-2025-012,Trade Promotion Biskuit Kelapa 65g Jun 2025,Trade Promotion,P004,2025-06-14,2025-06-20,,400.0,24,,,Grocery Store,Kalimantan,14200000.0,Share of Shelf
+PR-2025-013,Display Incentive Biskuit Marie 200g Jun 2025,Display Incentive,P006,2025-06-16,2025-07-13,,,1,,,All,Java,30600000.0,Distribution
+PR-2025-014,BOGO Biskuit Marie 200g Oct 2025,BOGO,P006,2025-10-20,2025-10-26,,,1,2.0,6000.0,Warung,Sumatra,31900000.0,Trial
+PR-2023-015,Trade Promotion Biskuit Marie Mini 25g Dec 2023,Trade Promotion,P007,2023-12-07,2023-12-13,,200.0,24,,,Wholesaler,Java,17600000.0,Distribution
+PR-2025-016,Bundle Biskuit Sandwich Cokelat 100g Mar 2025,Bundle,P001,2025-03-31,2025-04-20,,,4,4.0,10500.0,Grocery Store,Java,9400000.0,Trial
+PR-2025-017,Price Discount Biskuit Kelapa 65g May 2025,Price Discount,P004,2025-05-26,2025-06-15,5.0,,1,,,Supermarket,Java,21100000.0,Volume
+PR-2025-018,Bundle Mini-pack Assorted 12x18g Dec 2025,Bundle,P012,2025-12-27,2026-01-16,,,4,4.0,12000.0,Warung,Java,17300000.0,Trial
+PR-2024-019,Bundle Biskuit Sandwich Cokelat 40g Jan 2024,Bundle,P002,2024-01-14,2024-01-27,,,4,4.0,4500.0,All,Sumatra,30400000.0,Volume
+PR-2025-020,Trade Promotion Biskuit Sandwich Cokelat 40g May 2025,Trade Promotion,P002,2025-05-12,2025-06-01,,400.0,24,,,Grocery Store,Java,17900000.0,Distribution
+PR-2026-021,Bundle Wafer Cokelat Keluarga 150g Jan 2026,Bundle,P009,2026-01-15,2026-01-28,,,4,4.0,17400.0,Wholesaler,Sumatra,23000000.0,Trial
+PR-2026-022,Price Discount Biskuit Marie Mini 25g Mar 2026,Price Discount,P007,2026-03-21,2026-04-17,15.0,,1,,,Grocery Store,Java,25100000.0,Volume
+PR-2024-023,Price Discount Biskuit Sandwich Vanilla 150g Dec 2024,Price Discount,P003,2024-12-24,2024-12-30,5.0,,1,,,Wholesaler,All,9200000.0,Trial
+PR-2025-024,BOGO Biskuit Marie Mini 25g May 2025,BOGO,P007,2025-05-03,2025-05-09,,,1,2.0,1000.0,Grocery Store,All,33500000.0,Distribution
+PR-2025-025,Trade Promotion Biskuit Marie Mini 25g Mar 2025,Trade Promotion,P007,2025-03-27,2025-04-02,,200.0,24,,,All,Kalimantan,12400000.0,Distribution
+PR-2026-026,Trade Promotion Mini-pack Assorted 12x18g May 2026,Trade Promotion,P012,2026-05-28,2026-06-24,,200.0,24,,,Supermarket,Java,29200000.0,Distribution
+PR-2025-027,Price Discount Biskuit Sandwich Cokelat 40g Jul 2025,Price Discount,P002,2025-07-03,2025-07-30,20.0,,1,,,Grocery Store,Java,18800000.0,Distribution
+PR-2024-028,Trade Promotion Biskuit Kelapa Keluarga 200g Jan 2024,Trade Promotion,P005,2024-01-26,2024-02-15,,400.0,24,,,Warung,Java,13600000.0,Share of Shelf
+PR-2025-029,Trade Promotion Mini-pack Assorted 12x18g Jan 2025,Trade Promotion,P012,2025-01-16,2025-02-12,,400.0,24,,,Supermarket,All,24000000.0,Distribution
+PR-2025-030,Trade Promotion Biskuit Kelapa Keluarga 200g Sep 2025,Trade Promotion,P005,2025-09-18,2025-10-01,,400.0,24,,,All,Bali,8300000.0,Trial
+PR-2025-031,BOGO Crackers Keju 100g Sep 2025,BOGO,P011,2025-09-18,2025-10-15,,,1,2.0,4500.0,All,Java,12100000.0,Volume
+PR-2026-032,Price Discount Biskuit Assorted Toples 500g Jan 2026,Price Discount,P010,2026-01-24,2026-02-06,20.0,,1,,,Grocery Store,Sumatra,24300000.0,Share of Shelf
+PR-2025-033,Price Discount Biskuit Marie 200g Aug 2025,Price Discount,P006,2025-08-11,2025-08-31,20.0,,1,,,Warung,Kalimantan,9900000.0,Trial
+PR-2025-034,Price Discount Biskuit Assorted Toples 500g Nov 2025,Price Discount,P010,2025-11-17,2025-11-23,10.0,,1,,,Supermarket,All,32300000.0,Distribution
+PR-2024-035,Trade Promotion Biskuit Kelapa Keluarga 200g Apr 2024,Trade Promotion,P005,2024-04-17,2024-04-23,,300.0,24,,,Warung,All,23700000.0,Volume
+PR-2025-036,Price Discount Biskuit Assorted Toples 500g Feb 2025,Price Discount,P010,2025-02-22,2025-03-14,20.0,,1,,,Minimarket,Java,8600000.0,Share of Shelf
+PR-2025-037,Bundle Biskuit Kelapa 65g Feb 2025,Bundle,P004,2025-02-06,2025-02-12,,,4,4.0,6000.0,Warung,Sumatra,33200000.0,Distribution
+PR-2026-038,Price Discount Biskuit Sandwich Cokelat 100g Jun 2026,Price Discount,P001,2026-06-13,2026-06-26,5.0,,1,,,Wholesaler,All,28600000.0,Volume
+PR-2026-039,Display Incentive Crackers Keju 100g Apr 2026,Display Incentive,P011,2026-04-22,2026-05-19,,,1,,,Supermarket,Java,31300000.0,Volume
+PR-2026-040,Price Discount Biskuit Sandwich Cokelat 100g Mar 2026,Price Discount,P001,2026-03-16,2026-03-29,5.0,,1,,,Supermarket,Kalimantan,13400000.0,Share of Shelf
+PR-2026-041,Price Discount Mini-pack Assorted 12x18g Aug 2026,Price Discount,P012,2026-08-20,2026-09-09,20.0,,1,,,Grocery Store,Java,34100000.0,Trial
+PR-2026-042,Bundle Biskuit Marie Mini 25g Jan 2026,Bundle,P007,2026-01-10,2026-01-30,,,4,4.0,2100.0,Minimarket,Kalimantan,20900000.0,Share of Shelf
+PR-2025-043,Bundle Wafer Cokelat 30g Feb 2025,Bundle,P008,2025-02-10,2025-02-23,,,4,4.0,3600.0,Supermarket,All,16600000.0,Volume
+PR-2025-044,Trade Promotion Wafer Cokelat 30g Oct 2025,Trade Promotion,P008,2025-10-05,2025-10-18,,400.0,24,,,Grocery Store,Java,27600000.0,Trial
+PR-2024-045,Price Discount Biskuit Kelapa Keluarga 200g Jul 2024,Price Discount,P005,2024-07-01,2024-07-28,10.0,,1,,,Grocery Store,All,25500000.0,Volume
+PR-2024-046,Trade Promotion Biskuit Sandwich Vanilla 150g Dec 2024,Trade Promotion,P003,2024-12-11,2025-01-07,,400.0,24,,,All,Sumatra,29400000.0,Distribution
+PR-2024-047,Bundle Crackers Keju 100g Jun 2024,Bundle,P011,2024-06-05,2024-06-18,,,4,4.0,9600.0,Warung,All,25500000.0,Volume
+PR-2025-048,BOGO Biskuit Sandwich Cokelat 100g Aug 2025,BOGO,P001,2025-08-30,2025-09-12,,,1,2.0,4900.0,Wholesaler,Java,28700000.0,Trial
+PR-2026-049,Bundle Biskuit Marie 200g Mar 2026,Bundle,P006,2026-03-20,2026-04-09,,,4,4.0,12900.0,Wholesaler,Java,29100000.0,Distribution
+PR-2024-050,Display Incentive Biskuit Marie Mini 25g Jan 2024,Display Incentive,P007,2024-01-22,2024-02-11,,,1,,,Minimarket,Bali,15700000.0,Volume
+PR-2024-051,Trade Promotion Biskuit Marie Mini 25g Apr 2024,Trade Promotion,P007,2024-04-15,2024-04-21,,200.0,24,,,Minimarket,Java,16700000.0,Volume
+PR-2025-052,Price Discount Biskuit Assorted Toples 500g Feb 2025,Price Discount,P010,2025-02-12,2025-03-11,5.0,,1,,,Supermarket,Java,33100000.0,Share of Shelf
+PR-2025-053,Price Discount Biskuit Sandwich Cokelat 100g May 2025,Price Discount,P001,2025-05-09,2025-06-05,15.0,,1,,,Warung,Java,11700000.0,Trial
+PR-2026-054,Bundle Crackers Keju 100g Jul 2026,Bundle,P011,2026-07-20,2026-08-02,,,4,4.0,9600.0,Warung,Java,29100000.0,Trial
+PR-2026-055,Display Incentive Biskuit Assorted Toples 500g May 2026,Display Incentive,P010,2026-05-28,2026-06-10,,,1,,,Wholesaler,Bali,10900000.0,Trial
+PR-2024-056,Bundle Biskuit Kelapa 65g Nov 2024,Bundle,P004,2024-11-14,2024-11-27,,,4,4.0,6000.0,Supermarket,Eastern,16200000.0,Trial
+PR-2025-057,Trade Promotion Biskuit Sandwich Vanilla 150g Apr 2025,Trade Promotion,P003,2025-04-19,2025-05-09,,200.0,24,,,Supermarket,Java,15700000.0,Volume
+PR-2024-058,Trade Promotion Biskuit Sandwich Vanilla 150g May 2024,Trade Promotion,P003,2024-05-28,2024-06-17,,300.0,24,,,Supermarket,All,31900000.0,Distribution
+PR-2025-059,Trade Promotion Biskuit Kelapa 65g Sep 2025,Trade Promotion,P004,2025-09-12,2025-09-18,,300.0,24,,,Grocery Store,All,12100000.0,Distribution
+PR-2025-060,Display Incentive Biskuit Sandwich Cokelat 100g Jul 2025,Display Incentive,P001,2025-07-28,2025-08-24,,,1,,,All,All,30100000.0,Trial
+PR-2024-061,Trade Promotion Biskuit Sandwich Cokelat 40g May 2024,Trade Promotion,P002,2024-05-13,2024-05-19,,200.0,24,,,Wholesaler,All,20500000.0,Volume
+PR-2026-062,Display Incentive Crackers Keju 100g Aug 2026,Display Incentive,P011,2026-08-02,2026-08-22,,,1,,,Warung,Kalimantan,26300000.0,Volume
+PR-2026-063,Bundle Biskuit Sandwich Cokelat 100g Feb 2026,Bundle,P001,2026-02-23,2026-03-22,,,4,4.0,10500.0,Supermarket,All,30600000.0,Volume
+PR-2023-064,Trade Promotion Biskuit Sandwich Cokelat 40g Dec 2023,Trade Promotion,P002,2023-12-27,2024-01-16,,300.0,24,,,Warung,All,27600000.0,Trial
+PR-2026-065,Bundle Crackers Keju 100g Jul 2026,Bundle,P011,2026-07-16,2026-07-22,,,4,4.0,9600.0,Grocery Store,All,29000000.0,Trial
+PR-2026-066,Bundle Biskuit Marie 200g Jun 2026,Bundle,P006,2026-06-04,2026-06-10,,,4,4.0,12900.0,All,Sumatra,30500000.0,Trial
+PR-2025-067,Price Discount Crackers Keju 100g Jun 2025,Price Discount,P011,2025-06-04,2025-06-10,15.0,,1,,,Supermarket,Sumatra,20600000.0,Distribution
+PR-2023-068,Price Discount Biskuit Kelapa 65g Dec 2023,Price Discount,P004,2023-12-22,2024-01-18,15.0,,1,,,All,Java,32800000.0,Share of Shelf
+PR-2024-069,BOGO Biskuit Marie 200g Jun 2024,BOGO,P006,2024-06-17,2024-07-14,,,1,2.0,6000.0,All,Sumatra,26700000.0,Volume
+PR-2025-070,Price Discount Crackers Keju 100g Dec 2025,Price Discount,P011,2025-12-15,2026-01-11,15.0,,1,,,Warung,All,16500000.0,Distribution
+PR-2026-071,Price Discount Crackers Keju 100g Apr 2026,Price Discount,P011,2026-04-18,2026-05-15,15.0,,1,,,Grocery Store,Java,20600000.0,Volume
+PR-2025-072,Trade Promotion Biskuit Sandwich Cokelat 100g Mar 2025,Trade Promotion,P001,2025-03-03,2025-03-23,,400.0,24,,,Wholesaler,Kalimantan,16200000.0,Trial
+PR-2025-073,Trade Promotion Biskuit Sandwich Cokelat 40g Feb 2025,Trade Promotion,P002,2025-02-10,2025-03-02,,400.0,24,,,Warung,Java,16600000.0,Share of Shelf
+PR-2026-074,Display Incentive Crackers Keju 100g Jun 2026,Display Incentive,P011,2026-06-20,2026-07-10,,,1,,,Warung,Sumatra,26300000.0,Trial
+PR-2024-075,BOGO Biskuit Kelapa Keluarga 200g Nov 2024,BOGO,P005,2024-11-04,2024-11-17,,,1,2.0,8400.0,All,All,23500000.0,Share of Shelf
+PR-2025-076,Price Discount Biskuit Sandwich Cokelat 40g Feb 2025,Price Discount,P002,2025-02-03,2025-02-16,10.0,,1,,,Warung,Java,10300000.0,Distribution
+PR-2024-077,Price Discount Biskuit Marie 200g Oct 2024,Price Discount,P006,2024-10-30,2024-11-05,15.0,,1,,,Grocery Store,Sumatra,23700000.0,Share of Shelf
+PR-2025-078,BOGO Biskuit Sandwich Cokelat 40g Aug 2025,BOGO,P002,2025-08-12,2025-08-25,,,1,2.0,2100.0,Minimarket,Eastern,23100000.0,Share of Shelf
+PR-2024-079,Price Discount Biskuit Marie Mini 25g Feb 2024,Price Discount,P007,2024-02-23,2024-03-14,5.0,,1,,,Warung,All,33900000.0,Volume
+PR-2026-080,Trade Promotion Wafer Cokelat 30g Jun 2026,Trade Promotion,P008,2026-06-18,2026-06-24,,200.0,24,,,Wholesaler,All,17000000.0,Distribution
+PR-2026-081,Bundle Biskuit Sandwich Cokelat 100g Mar 2026,Bundle,P001,2026-03-06,2026-03-19,,,4,4.0,10500.0,Warung,Java,25500000.0,Distribution
+PR-2024-082,Trade Promotion Biskuit Sandwich Cokelat 40g Jun 2024,Trade Promotion,P002,2024-06-29,2024-07-19,,300.0,24,,,Grocery Store,Java,17700000.0,Trial
+PR-2025-083,Display Incentive Biskuit Sandwich Cokelat 100g Aug 2025,Display Incentive,P001,2025-08-18,2025-09-07,,,1,,,Grocery Store,Java,16100000.0,Distribution
+PR-2025-084,BOGO Biskuit Sandwich Vanilla 150g Apr 2025,BOGO,P003,2025-04-25,2025-05-08,,,1,2.0,7000.0,All,Sumatra,9900000.0,Distribution
+PR-2025-085,Price Discount Biskuit Sandwich Vanilla 150g Jan 2025,Price Discount,P003,2025-01-11,2025-01-17,15.0,,1,,,All,All,9400000.0,Volume
+PR-2025-086,Display Incentive Biskuit Marie Mini 25g Jul 2025,Display Incentive,P007,2025-07-02,2025-07-08,,,1,,,All,All,22900000.0,Trial
+PR-2026-087,Bundle Biskuit Assorted Toples 500g May 2026,Bundle,P010,2026-05-11,2026-05-31,,,4,4.0,42000.0,Grocery Store,Java,33700000.0,Distribution
+PR-2025-088,Display Incentive Crackers Keju 100g Dec 2025,Display Incentive,P011,2025-12-27,2026-01-23,,,1,,,All,All,27700000.0,Share of Shelf
+PR-2024-089,Trade Promotion Wafer Cokelat Keluarga 150g Sep 2024,Trade Promotion,P009,2024-09-03,2024-09-09,,200.0,24,,,Supermarket,Java,34100000.0,Volume
+PR-2025-090,Bundle Crackers Keju 100g May 2025,Bundle,P011,2025-05-12,2025-05-18,,,4,4.0,9600.0,Minimarket,Java,16500000.0,Share of Shelf
+PR-2025-091,Bundle Biskuit Assorted Toples 500g Nov 2025,Bundle,P010,2025-11-18,2025-12-08,,,4,4.0,42000.0,Warung,All,33900000.0,Trial
+PR-2026-092,BOGO Biskuit Sandwich Cokelat 100g Jan 2026,BOGO,P001,2026-01-02,2026-01-29,,,1,2.0,4900.0,Wholesaler,Java,34600000.0,Trial
+PR-2025-093,Bundle Biskuit Marie 200g Jul 2025,Bundle,P006,2025-07-30,2025-08-19,,,4,4.0,12900.0,Supermarket,Sulawesi,14700000.0,Share of Shelf
+PR-2025-094,Bundle Wafer Cokelat Keluarga 150g Dec 2025,Bundle,P009,2025-12-25,2025-12-31,,,4,4.0,17400.0,Warung,Java,27600000.0,Volume
+PR-2026-095,Price Discount Biskuit Marie Mini 25g Jul 2026,Price Discount,P007,2026-07-17,2026-08-06,20.0,,1,,,Grocery Store,Java,14000000.0,Volume
+PR-2025-096,Bundle Biskuit Sandwich Vanilla 150g May 2025,Bundle,P003,2025-05-24,2025-06-13,,,4,4.0,15000.0,Warung,All,14400000.0,Volume
+PR-2024-097,Bundle Wafer Cokelat Keluarga 150g Jul 2024,Bundle,P009,2024-07-12,2024-07-18,,,4,4.0,17400.0,Warung,Java,28900000.0,Share of Shelf
+PR-2026-098,Trade Promotion Biskuit Marie Mini 25g Jul 2026,Trade Promotion,P007,2026-07-01,2026-07-07,,400.0,24,,,All,Sumatra,32900000.0,Volume
+PR-2024-099,Price Discount Biskuit Marie 200g Mar 2024,Price Discount,P006,2024-03-06,2024-04-02,20.0,,1,,,Warung,Java,22500000.0,Distribution
+PR-2024-100,Trade Promotion Biskuit Marie Mini 25g Feb 2024,Trade Promotion,P007,2024-02-26,2024-03-24,,200.0,24,,,Wholesaler,Java,33200000.0,Volume
+PR-2024-101,BOGO Wafer Cokelat Keluarga 150g Jun 2024,BOGO,P009,2024-06-11,2024-06-17,,,1,2.0,8100.0,Grocery Store,Java,22300000.0,Share of Shelf
+PR-2026-102,Trade Promotion Biskuit Marie 200g Mar 2026,Trade Promotion,P006,2026-03-21,2026-04-10,,400.0,24,,,Supermarket,Sumatra,21600000.0,Distribution
+PR-2025-103,Bundle Biskuit Assorted Toples 500g Mar 2025,Bundle,P010,2025-03-03,2025-03-23,,,4,4.0,42000.0,Warung,Kalimantan,26600000.0,Share of Shelf
+PR-2026-104,Price Discount Wafer Cokelat Keluarga 150g May 2026,Price Discount,P009,2026-05-28,2026-06-17,15.0,,1,,,Supermarket,Java,24700000.0,Volume
+PR-2025-105,Price Discount Biskuit Marie 200g Sep 2025,Price Discount,P006,2025-09-29,2025-10-05,5.0,,1,,,Minimarket,Java,20300000.0,Volume
+PR-2024-106,Bundle Biskuit Sandwich Cokelat 100g Jun 2024,Bundle,P001,2024-06-13,2024-07-10,,,4,4.0,10500.0,Grocery Store,All,12600000.0,Volume
+PR-2024-107,Price Discount Biskuit Sandwich Cokelat 40g Nov 2024,Price Discount,P002,2024-11-25,2024-12-01,5.0,,1,,,Warung,Java,9600000.0,Trial
+PR-2025-108,Display Incentive Biskuit Kelapa 65g Oct 2025,Display Incentive,P004,2025-10-05,2025-10-25,,,1,,,Wholesaler,All,33000000.0,Share of Shelf
+PR-2025-109,Price Discount Wafer Cokelat Keluarga 150g Jul 2025,Price Discount,P009,2025-07-08,2025-07-28,5.0,,1,,,Minimarket,Java,9500000.0,Share of Shelf
+PR-2026-110,Trade Promotion Biskuit Marie 200g Jan 2026,Trade Promotion,P006,2026-01-20,2026-01-26,,300.0,24,,,Grocery Store,All,17900000.0,Distribution
+PR-2024-111,Trade Promotion Biskuit Marie Mini 25g Oct 2024,Trade Promotion,P007,2024-10-22,2024-11-18,,300.0,24,,,All,Kalimantan,17600000.0,Volume
+PR-2024-112,Display Incentive Biskuit Kelapa 65g Dec 2024,Display Incentive,P004,2024-12-10,2024-12-16,,,1,,,Warung,Java,14500000.0,Share of Shelf
+PR-2025-113,Trade Promotion Crackers Keju 100g Aug 2025,Trade Promotion,P011,2025-08-18,2025-09-14,,400.0,24,,,Supermarket,All,18000000.0,Trial
+PR-2026-114,Display Incentive Crackers Keju 100g Aug 2026,Display Incentive,P011,2026-08-09,2026-08-15,,,1,,,Warung,All,18300000.0,Share of Shelf
+PR-2024-115,Bundle Biskuit Sandwich Cokelat 40g Apr 2024,Bundle,P002,2024-04-09,2024-04-15,,,4,4.0,4500.0,All,All,18100000.0,Trial
+PR-2024-116,Price Discount Biskuit Marie Mini 25g Mar 2024,Price Discount,P007,2024-03-07,2024-04-03,10.0,,1,,,All,Kalimantan,15900000.0,Trial
+PR-2026-117,Price Discount Biskuit Marie 200g Jun 2026,Price Discount,P006,2026-06-22,2026-07-19,20.0,,1,,,Grocery Store,Java,18100000.0,Share of Shelf
+PR-2026-118,Price Discount Biskuit Kelapa Keluarga 200g May 2026,Price Discount,P005,2026-05-22,2026-05-28,15.0,,1,,,Warung,Eastern,18200000.0,Distribution
+PR-2024-119,Bundle Biskuit Sandwich Cokelat 100g Mar 2024,Bundle,P001,2024-03-05,2024-03-18,,,4,4.0,10500.0,Supermarket,Java,15000000.0,Share of Shelf
+PR-2025-120,Price Discount Wafer Cokelat 30g Aug 2025,Price Discount,P008,2025-08-26,2025-09-15,10.0,,1,,,Supermarket,Sulawesi,22800000.0,Share of Shelf

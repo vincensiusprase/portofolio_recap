@@ -1,6 +1,6 @@
 # RAG FMEA Maintenance Bot
 
-A Discord bot for searching and analyzing **Failure Mode and Effects Analysis (FMEA)** data. The bot retrieves FMEA records and corrective steps from Vertex AI Discovery Engine, uses DeepSeek to generate responses, and stores per-session conversation history in Google Cloud Firestore.
+A Discord bot for searching and analyzing **Failure Mode and Effects Analysis (FMEA)** data. The bot retrieves FMEA records and corrective steps from Vertex AI Discovery Engine, uses Nemotron through an NVIDIA NIM OpenAI-compatible endpoint to generate responses, and stores per-session conversation history in Google Cloud Firestore. The RAG evaluation runner continues to use DeepSeek as its judge model.
 
 ## Features
 
@@ -18,7 +18,7 @@ Discord User
     v
 Discord Bot (src/backend/main.py)
     |-- Vertex AI Discovery Engine -> retrieves FMEA data
-    |-- DeepSeek API                -> generates the response
+    |-- NVIDIA NIM (Nemotron)       -> generates the response
     `-- Firestore                   -> stores session history
 ```
 
@@ -45,9 +45,10 @@ Install or prepare the following:
   - Discovery Engine API
   - Firestore API
 - A Discord application and bot token
-- A DeepSeek API key
+- An NVIDIA NIM endpoint, API key, and Nemotron model ID for the Discord bot
+- A DeepSeek API key if running the RAG evaluation
 
-Google Cloud and DeepSeek services may incur costs or quota limits. Check billing and quotas before running large evaluations.
+Google Cloud, NVIDIA NIM, and DeepSeek services may incur costs or quota limits. Check billing and quotas before running the bot or large evaluations.
 
 ## Setup using Windows PowerShell
 
@@ -106,6 +107,11 @@ Create `src/backend/.env` locally. Do not upload it to Git because it contains t
 ```powershell
 @"
 DISCORD_BOT_TOKEN=your_discord_bot_token
+# NVIDIA NIM OpenAI-compatible endpoint; include /v1 in the base URL
+NVIDIA_NIM_API_KEY=your_nvidia_nim_api_key
+NVIDIA_NIM_BASE_URL=https://your-nim-endpoint/v1
+NVIDIA_NIM_MODEL=your-nemotron-model-id
+# Used only by src/backend/eval_rag.py
 DEEPSEEK_API_KEY=your_deepseek_api_key
 GCP_PROJECT_ID=your-gcp-project-id
 GCP_LOCATION=global
@@ -121,7 +127,10 @@ Environment variables:
 | Variable | Required | Description |
 | --- | --- | --- |
 | `DISCORD_BOT_TOKEN` | Yes for the bot | Token from the Discord Developer Portal |
-| `DEEPSEEK_API_KEY` | Yes | API key for the DeepSeek model |
+| `NVIDIA_NIM_API_KEY` | Yes for the bot | API key for the NVIDIA NIM endpoint |
+| `NVIDIA_NIM_BASE_URL` | Yes for the bot | OpenAI-compatible NIM API base URL, including `/v1` |
+| `NVIDIA_NIM_MODEL` | Yes for the bot | Model ID served by the NIM endpoint |
+| `DEEPSEEK_API_KEY` | Yes for evaluation only | API key for the DeepSeek evaluation judge |
 | `GCP_PROJECT_ID` | Yes | Google Cloud project ID |
 | `GCP_LOCATION` | No | Discovery Engine location; defaults to `global` |
 | `DATA_STORE_ID` | Yes | One or more comma-separated data-store IDs |

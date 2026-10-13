@@ -1,0 +1,41 @@
+distributor_id,distributor_name,province,sales_region,distributor_type,coverage_outlets,sales_target_monthly_idr,payment_terms_days,distributor_status
+D001,PT Niaga Utama Jakarta Selatan,DKI Jakarta,Java,Master Distributor,30,1464000000.0,45,active
+D002,PT Distribusi Nusantara Bogor,Jawa Barat,Java,Regional Distributor,42,676000000.0,30,active
+D003,CV Sumber Berkah Tangerang,Banten,Java,Sub-Distributor,42,415000000.0,14,active
+D004,PT Andalan Logistik Semarang,Jawa Tengah,Java,Regional Distributor,49,779000000.0,30,active
+D005,PT Gerbang Sukses Yogyakarta,DI Yogyakarta,Java,Sub-Distributor,31,224000000.0,14,active
+D006,CV Mitra Sejahtera Surabaya,Jawa Timur,Java,Regional Distributor,43,890000000.0,30,active
+D007,PT Niaga Utama Jakarta Selatan,DKI Jakarta,Java,Sub-Distributor,45,390000000.0,14,active
+D008,PT Distribusi Nusantara Bogor,Jawa Barat,Java,Regional Distributor,51,814000000.0,30,active
+D009,CV Sumber Berkah Tangerang,Banten,Java,Sub-Distributor,36,232000000.0,14,active
+D010,PT Andalan Logistik Semarang,Jawa Tengah,Java,Regional Distributor,45,680000000.0,30,active
+D011,PT Gerbang Sukses Yogyakarta,DI Yogyakarta,Java,Sub-Distributor,32,293000000.0,14,active
+D012,CV Mitra Sejahtera Surabaya,Jawa Timur,Java,Regional Distributor,36,871000000.0,30,active
+D013,PT Niaga Utama Jakarta Selatan,DKI Jakarta,Java,Sub-Distributor,49,361000000.0,14,active
+D014,PT Distribusi Nusantara Bogor,Jawa Barat,Java,Regional Distributor,37,829000000.0,30,active
+D015,CV Sumber Berkah Tangerang,Banten,Java,Sub-Distributor,47,311000000.0,14,active
+D016,PT Andalan Logistik Semarang,Jawa Tengah,Java,Regional Distributor,43,591000000.0,30,active
+D017,PT Gerbang Sukses Medan,Sumatera Utara,Sumatra,Master Distributor,21,1333000000.0,45,active
+D018,CV Mitra Sejahtera Padang,Sumatera Barat,Sumatra,Regional Distributor,37,526000000.0,30,churn_risk
+D019,PT Niaga Utama Pekanbaru,Riau,Sumatra,Sub-Distributor,29,407000000.0,14,active
+D020,PT Distribusi Nusantara Palembang,Sumatera Selatan,Sumatra,Regional Distributor,27,753000000.0,30,active
+D021,CV Sumber Berkah Bandar Lampung,Lampung,Sumatra,Sub-Distributor,15,390000000.0,14,churn_risk
+D022,PT Andalan Logistik Medan,Sumatera Utara,Sumatra,Regional Distributor,23,642000000.0,30,active
+D023,PT Gerbang Sukses Padang,Sumatera Barat,Sumatra,Sub-Distributor,30,443000000.0,14,active
+D024,CV Mitra Sejahtera Pekanbaru,Riau,Sumatra,Regional Distributor,28,857000000.0,30,active
+D025,PT Niaga Utama Palembang,Sumatera Selatan,Sumatra,Sub-Distributor,28,395000000.0,14,active
+D026,PT Distribusi Nusantara Pontianak,Kalimantan Barat,Kalimantan,Master Distributor,12,1117000000.0,45,active
+D027,CV Sumber Berkah Samarinda,Kalimantan Timur,Kalimantan,Regional Distributor,29,687000000.0,30,active
+D028,PT Andalan Logistik Banjarmasin,Kalimantan Selatan,Kalimantan,Sub-Distributor,20,211000000.0,14,active
+D029,PT Gerbang Sukses Pontianak,Kalimantan Barat,Kalimantan,Regional Distributor,29,562000000.0,30,active
+D030,CV Mitra Sejahtera Samarinda,Kalimantan Timur,Kalimantan,Sub-Distributor,22,371000000.0,14,active
+D031,PT Niaga Utama Makassar,Sulawesi Selatan,Sulawesi,Master Distributor,33,1447000000.0,45,active
+D032,PT Distribusi Nusantara Manado,Sulawesi Utara,Sulawesi,Regional Distributor,22,887000000.0,30,active
+D033,CV Sumber Berkah Makassar,Sulawesi Selatan,Sulawesi,Sub-Distributor,18,281000000.0,14,active
+D034,PT Andalan Logistik Manado,Sulawesi Utara,Sulawesi,Regional Distributor,27,648000000.0,30,active
+D035,PT Gerbang Sukses Denpasar,Bali,Bali,Master Distributor,23,1282000000.0,45,active
+D036,CV Mitra Sejahtera Denpasar,Bali,Bali,Regional Distributor,26,576000000.0,30,active
+D037,PT Niaga Utama Kupang,Nusa Tenggara Timur,Eastern,Master Distributor,11,1078000000.0,45,churn_risk
+D038,PT Distribusi Nusantara Jayapura,Papua,Eastern,Regional Distributor,9,690000000.0,30,churn_risk
+D039,CV Sumber Berkah Kupang,Nusa Tenggara Timur,Eastern,Sub-Distributor,16,257000000.0,14,active
+D040,PT Andalan Logistik Jayapura,Papua,Eastern,Regional Distributor,7,768000000.0,30,active

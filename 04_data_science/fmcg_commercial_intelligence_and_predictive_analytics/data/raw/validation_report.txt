@@ -1,0 +1,71 @@
+=== VALIDASI DATASET SINTETIS FMCG BISKUIT INDONESIA ===
+
+[PASS] 1. PK unik products.product_id | duplikat=0
+[PASS] 1. PK unik outlets.outlet_id | duplikat=0
+[PASS] 1. PK unik distributors.distributor_id | duplikat=0
+[PASS] 1. PK unik sales_transactions.transaction_id | duplikat=0
+[PASS] 1. PK unik promotions.promotion_id | duplikat=0
+[PASS] 1. PK unik promotion_execution.execution_id | duplikat=0
+[PASS] 1. PK unik uplift_dataset.execution_id | duplikat=0
+[PASS] 1. PK unik calendar_features.date | duplikat=0
+[PASS] 1. PK unik inventory (snapshot, product, distributor)
+[PASS] 1. PK unik customer_monthly (month, outlet)
+[PASS] 2. FK outlets.distributor_id | missing=0
+[PASS] 2. FK transactions.outlet_id | missing=0
+[PASS] 2. FK transactions.distributor_id | missing=0
+[PASS] 2. FK transactions.product_id | missing=0
+[PASS] 2. FK transactions.promo_id | missing=0
+[PASS] 2. FK promotions.product_id | missing=0
+[PASS] 2. FK execution.promotion_id | missing=0
+[PASS] 2. FK execution.outlet_id | missing=0
+[PASS] 2. FK inventory.product_id | missing=0
+[PASS] 2. FK inventory.distributor_id | missing=0
+[PASS] 2. FK customer_monthly.outlet_id | missing=0
+[PASS] 2. FK uplift.execution_id | missing=0
+[PASS] 3. order_date valid & dalam periode
+[PASS] 3. invoice_date >= order_date
+[PASS] 3. order_date >= outlet_open_date | violations=0
+[PASS] 3. order_date >= product launch_date
+[PASS] 3. tidak ada order setelah produk discontinued | violations=0
+[PASS] 4. quantity_units > 0
+[PASS] 4. return_quantity_units >= 0 dan <= quantity
+[PASS] 4. cogs/gross_profit tidak negatif untuk unit terjual
+[PASS] 4. inventory: stok tidak negatif
+[PASS] 5. harga & biaya > 0
+[PASS] 5. harga jual > biaya produksi
+[PASS] 5. discount_idr 0 <= discount <= gross
+[PASS] 5. discount_percentage promosi dalam [0,100]
+[PASS] 5. harga tidak negatif di transaksi
+[PASS] 6. net = gross - discount - nilai retur (toleransi 1 IDR) | max_selisih=0.00
+[PASS] 6. retur 0 -> nilai retur 0
+[PASS] 6. cogs = (qty - retur restock) x unit_cost
+[PASS] 6. gross_profit = net - cogs
+[PASS] 6. is_return konsisten dengan return_quantity_units
+[PASS] 7. saldo inventory: closing = opening + inbound - sales + retur - damaged | baris_salah=0
+[PASS] 7. opening(t) = closing(t-1) per distributor-SKU | violations=0
+[PASS] 7. stockout_flag konsisten dengan lost_units ground truth
+[PASS] 7. observed_sales ground truth = sales_units inventory
+[PASS] 8. tidak ada transaksi setelah churn_date | violations=0
+[PASS] 8. churn_date > open_date
+[PASS] 8. status churned/inactive punya churn_date
+[PASS] 8. status active/newly_opened tidak punya churn_date
+[PASS] 9. fitur bulanan direkonstruksi dari data <= akhir bulan (300 sampel) | mismatch=0
+[PASS] 9. tidak ada kolom target di customer_monthly_features
+[PASS] 9. uplift: ground truth tidak ada di uplift_dataset
+[PASS] 10. split temporal tanpa overlap (train<valid<test) | train=147312 valid=40707 test=40266
+[PASS] 10. fitur bulanan split konsisten dengan batas waktu
+
+TOTAL FAIL: 0
+
+=== RINGKASAN ===
+Periode: 2023-10-01 s.d. 2026-09-30
+Outlet: 1200 | Distributor: 40 | SKU: 12 | Promosi: 120
+Baris transaksi: 228,285 | Eksekusi promo: 24,374 | Baris inventory: 67,720
+Total net sales (IDR excl PPN): 9,705,080,448
+Gross margin: 32.7%
+Tingkat retur (unit): 0.33%
+Proporsi minggu dengan stockout (distributor-SKU): 3.44%
+Exposure promo: 40.0% | Redeemed: 25.1% | kontrol (eligible tidak terpapar): 14,635
+Status outlet: {'active': 1076, 'churned': 97, 'inactive': 15, 'newly_opened': 12}
+Missing credit_limit_idr: 4.9%
+Missing sales_channel: 0.50%

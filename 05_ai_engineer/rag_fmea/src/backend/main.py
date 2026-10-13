@@ -1,6 +1,7 @@
 import asyncio
 import os
 import sys
+import csv
 import discord
 import re
 from dotenv import load_dotenv
@@ -46,6 +47,204 @@ FOLLOWUP_CUES = re.compile(
     re.IGNORECASE,
 )
 
+# --- Fuzzy Typo Correction untuk Department -----------------------------------
+# Mapping typo/misspelling umum ke department yang benar
+DEPARTMENT_ALIASES = {
+    "peking": "PACKAGING",
+    "paking": "PACKAGING",
+    "packing": "PACKAGING",
+    "packagin": "PACKAGING",
+    "pakaging": "PACKAGING",
+    "pakagings": "PACKAGING",
+    "pegaging": "PACKAGING",
+    "produksi": "PRODUCTION",
+    "prodction": "PRODUCTION",
+    "produksion": "PRODUCTION",
+    "producion": "PRODUCTION",
+    "kualiti": "QUALITY",
+    "kualitas": "QUALITY",
+    "kwalitas": "QUALITY",
+    "kwaliti": "QUALITY",
+    "qualiti": "QUALITY",
+    "qualty": "QUALITY",
+    "utilitas": "UTILITY",
+    "utilites": "UTILITY",
+    "utillity": "UTILITY",
+    "utillitas": "UTILITY",
+    "utilitis": "UTILITY",
+    "gudang": "WAREHOUSE",
+    "warehous": "WAREHOUSE",
+}
+
+def _levenshtein(a: str, b: str) -> int:
+    """Hitung jarak edit (Levenshtein) antara dua string."""
+    if a == b:
+        return 0
+    if len(a) < len(b):
+        a, b = b, a
+    if not b:
+        return len(a)
+    prev = list(range(len(b) + 1))
+    for i, ca in enumerate(a, start=1):
+        curr = [i]
+        for j, cb in enumerate(b, start=1):
+            curr.append(min(
+                prev[j] + 1,        # hapus
+                curr[j - 1] + 1,    # sisip
+                prev[j - 1] + (ca != cb),  # substitusi
+            ))
+        prev = curr
+    return prev[-1]
+
+
+# Nama department yang benar (dipakai untuk fuzzy correction)
+_DEPT_CANON = ["PACKAGING", "PRODUCTION", "QUALITY", "UTILITIES", "WAREHOUSE"]
+
+
+def _resolve_department_token(token: str, max_dist: int = 2):
+    """
+    Kembalikan nama department kanonik untuk sebuah token (kata),
+    memakai alias eksplisit dulu, lalu fuzzy Levenshtein.
+    None jika tidak cukup mirip.
+    """
+    t = re.sub(r"[^\w]", "", token).lower()
+    if not t:
+        return None
+    # 1. alias eksplisit
+    if t in DEPARTMENT_ALIASES:
+        return DEPARTMENT_ALIASES[t]
+    # 2. token sudah persis nama department?
+    tu = t.upper()
+    if tu in _DEPT_CANON:
+        return tu
+    # 3. fuzzy: bandingkan ke alias & nama kanonik (lowercase)
+    candidates = set(DEPARTMENT_ALIASES.keys())
+    candidates |= {d.lower() for d in _DEPT_CANON}
+    best, best_dist = None, 999
+    for cand in candidates:
+        # batasi perbandingan pada kata dengan panjang mirip agar tidak overcorrect
+        if abs(len(cand) - len(t)) > 2:
+            continue
+        d = _levenshtein(t, cand)
+        # toleransi 1 edit untuk kata pendek, 2 untuk kata panjang
+        allowed = 1 if len(cand) <= 5 else max_dist
+        if d <= allowed and d < best_dist:
+            best, best_dist = cand, d
+    if best:
+        return DEPARTMENT_ALIASES.get(best, best.upper())
+    return None
+
+
+def correct_department_typo(query: str) -> str:
+    """
+    Deteksi dan koreksi typo department di query pengguna.
+    Mengembalikan query yang sudah dikoreksi (nama department jadi UPPERCASE).
+    """
+    words = query.split()
+    corrected_words = []
+    for word in words:
+        resolved = _resolve_department_token(word)
+        corrected_words.append(resolved if resolved else word)
+    return " ".join(corrected_words)
+
+# --- AGREGASI DEPARTMENT (dari CSV master lokal) ------------------------------
+# Path ke CSV master FMEA (relatif terhadap file main.py -> project_root/public/data)
+_THIS_DIR = os.path.dirname(os.path.abspath(__file__))
+FMEA_MASTER_CSV = os.path.normpath(
+    os.path.join(_THIS_DIR, "..", "..", "public", "data", "fmea_master_fmea_graph_flattened.csv")
+)
+
+# Deteksi pertanyaan agregasi: "top N RPN di department X"
+TOP_N_RPN_RE = re.compile(
+    r"\btop\s*(\d+)?\s*(?:rpn|risk)\b",
+    re.IGNORECASE,
+)
+RANKING_WORDS_RE = re.compile(
+    r"\b(peringkat|ranking|tertinggi|terbesar|highest|urutkan|sortir|urut|daftar|daftarkan|sebutkan|list)\b",
+    re.IGNORECASE,
+)
+# Department yang dikenal (untuk deteksi nama department di query)
+KNOWN_DEPARTMENTS = {"PRODUCTION", "UTILITIES", "PACKAGING", "QUALITY", "WAREHOUSE"}
+
+def detect_department_in_query(query: str):
+    """
+    Kembalikan nama department yang disebut di query, atau None.
+    Melakukan koreksi typo per-kata sehingga 'peking' -> 'PACKAGING'.
+    'UTILITY' dinormalkan ke 'UTILITIES' agar cocok dengan data CSV.
+    """
+    for word in query.split():
+        resolved = _resolve_department_token(word)
+        if resolved:
+            return "UTILITIES" if resolved.upper() in ("UTILITY", "UTILITIES") else resolved.upper()
+    return None
+
+def is_department_ranking_query(query: str) -> bool:
+    """
+    True jika query adalah permintaan daftar/ranking RPN (opsional dengan department).
+    Contoh: "top 5 RPN di departement PACKAGING", "peringkat RPN QUALITY".
+    """
+    has_top_n = bool(TOP_N_RPN_RE.search(query))
+    has_rank_word = bool(RANKING_WORDS_RE.search(query))
+    # Harus menyebut RPN/risk DAN (top N atau kata ranking)
+    return has_top_n or (has_rank_word and "RPN" in query.upper())
+
+def build_department_ranking_context(query: str, limit: int = 5) -> str:
+    """
+    Baca CSV master lokal, filter berdasarkan department (jika disebut),
+    urutkan RPN desc, dan kembalikan konteks siap-pakai untuk LLM.
+    """
+    dept = detect_department_in_query(query)
+    if not os.path.exists(FMEA_MASTER_CSV):
+        print(f"⚠️ CSV master tidak ditemukan: {FMEA_MASTER_CSV}")
+        return ""
+
+    rows = []
+    try:
+        with open(FMEA_MASTER_CSV, encoding="utf-8-sig", newline="") as f:
+            reader = csv.DictReader(f)
+            for r in reader:
+                r_dept = (r.get("Department") or "").strip().upper()
+                if dept and r_dept != dept:
+                    continue
+                try:
+                    rpn = int(float((r.get("RPN") or "0").strip()))
+                except ValueError:
+                    rpn = 0
+                rows.append({
+                    "fmea_id": (r.get("FMEA_ID") or "").strip(),
+                    "asset_id": (r.get("Asset_ID") or "").strip(),
+                    "department": r_dept,
+                    "failure_mode": (r.get("Failure_Mode") or "").strip(),
+                    "rpn": rpn,
+                    "severity": (r.get("Severity") or "").strip(),
+                    "occurrence": (r.get("Occurrence") or "").strip(),
+                    "detection": (r.get("Detection") or "").strip(),
+                })
+    except Exception as e:
+        print(f"❌ Gagal membaca CSV master: {e}")
+        return ""
+
+    if not rows:
+        return ""
+
+    rows.sort(key=lambda x: x["rpn"], reverse=True)
+    top = rows[:limit]
+
+    header_scope = f"Departemen {dept}" if dept else "SEMUA departemen"
+    lines = [
+        f"[HASIL AGREGASI LOKAL] Peringkat {len(top)} RPN tertinggi untuk {header_scope}",
+        f"(Total {len(rows)} record ditemukan)",
+        "Data di bawah ini SUDAH TERURUT dari RPN tertinggi. Gunakan data ini sebagai sumber jawaban.",
+        "",
+    ]
+    for idx, r in enumerate(top, start=1):
+        lines.append(
+            f"{idx}. FMEA_ID: {r['fmea_id']} | Asset_ID: {r['asset_id']} | "
+            f"Department: {r['department']} | Failure_Mode: {r['failure_mode']} | "
+            f"RPN: {r['rpn']} (S={r['severity']}, O={r['occurrence']}, D={r['detection']})"
+        )
+    return "\n".join(lines)
+
 # --- Parameter retrieval ------------------------------------------------------
 SEARCH_PAGE_SIZE = 10
 DETAIL_PAGE_SIZE = 50
@@ -54,12 +253,28 @@ MAX_FMEA_FOR_ASSET = 6     # bila user menyebut Asset_ID (satu asset bisa punya 
 # Kolom yang isinya hanya duplikat dari kolom lain (hemat token & kurangi noise)
 CONTEXT_SKIP_FIELDS = {"Graph_Context_Snippet"}
 
+NVIDIA_NIM_API_KEY = os.getenv("NVIDIA_NIM_API_KEY", "").strip()
+NVIDIA_NIM_BASE_URL = os.getenv("NVIDIA_NIM_BASE_URL", "").strip()
+NVIDIA_NIM_MODEL = os.getenv("NVIDIA_NIM_MODEL", "").strip()
+missing_nim_settings = [
+    name for name, value in (
+        ("NVIDIA_NIM_API_KEY", NVIDIA_NIM_API_KEY),
+        ("NVIDIA_NIM_BASE_URL", NVIDIA_NIM_BASE_URL),
+        ("NVIDIA_NIM_MODEL", NVIDIA_NIM_MODEL),
+    ) if not value
+]
+if missing_nim_settings:
+    raise RuntimeError(
+        "Missing NVIDIA NIM configuration in src/backend/.env: "
+        + ", ".join(missing_nim_settings)
+    )
+
 # Inisialisasi Firestore DB untuk Persistent Session Memory (GCP Free Tier)
 db = firestore.Client(project=PROJECT_ID)
 
-deepseek_client = OpenAI(
-    api_key=os.getenv("DEEPSEEK_API_KEY"),
-    base_url="https://api.deepseek.com",
+llm_client = OpenAI(
+    api_key=NVIDIA_NIM_API_KEY,
+    base_url=NVIDIA_NIM_BASE_URL,
     timeout=60.0,
     max_retries=2,
 )
@@ -383,7 +598,32 @@ FORMATTING & TATA CARA MENJAWAB (VISUAL & LAYOUT)
    - Jika menjelaskan urutan langkah perbaikan, daftar komponen, atau mode kegagalan, WAJIB menggunakan format Bullet Points (*) atau Numbering (1, 2, 3).
    - Buat sub-bullet (indentasi) untuk rincian detail di bawah poin utama.
 
-3. BAHASA JAWABAN:
+3. FORMAT DAFTAR/RANKING (WAJIB UNTUK "TOP N", DAFTAR, PERINGKAT):
+   - Jika pengguna meminta daftar peringkat, top N, atau perbandingan data (contoh: "top 5 RPN", "daftar failure mode", "peringkat"), JANGAN gunakan tabel ASCII lebar karena akan terpotong (line wrap) di tampilan chat Discord.
+   - GUNAKAN FORMAT DAFTAR PER ENTRI (satu blok ringkas per baris peringkat), dengan gaya berikut:
+     **[1] FMEA-CHK-001 — RPN 84**
+       • Asset  : AST-CHECKWEIGH-01
+       • Mode   : Checkweigher calibration drift
+       • Dept   : QUALITY
+   - Setiap entri diberi nomor peringkat dalam kurung siku `[1]`, `[2]`, dst, diurutkan dari RPN tertinggi.
+   - WAJIB menyebutkan nilai RPN secara eksplisit pada setiap entri.
+   - Gunakan bullet `•` untuk field pendukung (Asset, Mode, Dept) dengan indentasi 2 spasi.
+   - Pisahkan antar entri dengan satu baris kosong agar rapi.
+   - DILARANG menggunakan karakter pipe `|` atau tabel Markdown.
+   - DILARANG membuat tabel ASCII dengan banyak kolom sejajar (rawan terpotong).
+   - Jika data hanya 1 (satu) record, tetap tampilkan dengan format daftar di atas.
+   - Contoh format yang benar:
+     **[1] FMEA-CHK-001 — RPN 84**
+       • Asset : AST-CHECKWEIGH-01
+       • Mode  : Checkweigher calibration drift
+       • Dept  : QUALITY
+
+     **[2] FMEA-XXX-002 — RPN 72**
+       • Asset : AST-XXX-02
+       • Mode  : Mode kegagalan lain
+       • Dept  : QUALITY
+
+4. BAHASA JAWABAN:
    - Jawab menggunakan bahasa yang sama dengan bahasa utama pertanyaan pengguna.
    - Jika pengguna bertanya dalam Bahasa Indonesia, terjemahkan isi data sumber yang berbahasa Inggris ke Bahasa Indonesia secara akurat.
    - Pertahankan istilah teknis, nama komponen, mode mesin, FMEA_ID, Asset_ID, dan nilai numerik yang penting; sertakan teks asli (Inggris) dari data
@@ -419,11 +659,24 @@ PENANGANAN DATA KOSONG (ANTI-HALUSINASI & GUARDRAILS)
    menyebut ID sebenarnya. JANGAN menjawab dengan data ID lain seolah-olah itu ID yang ditanyakan.
 3. Jika Asset_ID ada tetapi failure mode yang ditanyakan tidak ada, nyatakan tidak ditemukan dan sebutkan failure mode yang tersedia untuk asset tersebut.
 4. Dilarang mengarang Prosedur Perbaikan, harga, nama personel, atau angka standar parameter yang tidak tertera pada Konteks Data.
+5. Jika pengguna menanyakan department dengan typo (misal "peking" untuk PACKAGING), sistem sudah mengoreksi typo tersebut secara otomatis.
+   Gunakan department yang sudah dikoreksi untuk mencari data, dan sebutkan department yang benar di jawaban.
+6. Jika Konteks Data diawali dengan "[HASIL AGREGASI LOKAL]", itu berarti data sudah diambil langsung dari master FMEA
+   dan SUDAH TERURUT dari RPN tertinggi. WAJIB:
+   - Tampilkan tepat sesuai peringkat yang diminta (mis. "top 5" -> tampilkan 5 entri) memakai FORMAT DAFTAR/RANKING di atas.
+   - Sebutkan nama department yang benar (hasil koreksi typo) pada kalimat pembuka.
+   - Sebutkan jumlah record yang ditemukan bila disebutkan pada konteks.
+   - DILARANG menyatakan "data tidak ditemukan" jika konteks agregasi tersedia dan berisi data.
 """
 
 
 def generate_maintenance_response(session_id: str, user_query: str) -> str:
     original_query = user_query
+
+    # 0. Koreksi typo department (misal: peking -> PACKAGING)
+    user_query = correct_department_typo(user_query)
+    if user_query != original_query:
+        print(f"📝 Typo corrected: '{original_query}' -> '{user_query}'")
 
     # 1. Ambil history percakapan dari Firestore
     history = get_session_history(session_id, limit=MAX_HISTORY_MESSAGES)
@@ -434,9 +687,28 @@ def generate_maintenance_response(session_id: str, user_query: str) -> str:
         search_query = user_query
     else:
         search_query = build_search_query_with_context(user_query, history)
-    retrieved_context = query_data_store(search_query)
 
-    print("🤖 [2/3] Menyusun prompt evaluasi penalaran ke DeepSeek...")
+    # 2b. KHUSUS query agregasi "top N RPN [di department X]":
+    #     Vertex AI Search tidak cocok untuk agregasi, jadi baca CSV master lokal.
+    retrieved_context = ""
+    if is_department_ranking_query(user_query):
+        # ambil N dari "top N RPN" bila ada, default 5
+        n_match = TOP_N_RPN_RE.search(user_query)
+        try:
+            limit = int(n_match.group(1)) if n_match and n_match.group(1) else 5
+        except (ValueError, AttributeError):
+            limit = 5
+        limit = max(1, min(limit, 20))
+        print(f"📊 Query agregasi RPN terdeteksi. Mengambil top {limit} dari CSV master lokal...")
+        retrieved_context = build_department_ranking_context(user_query, limit=limit)
+        if retrieved_context:
+            print("✅ Konteks agregasi lokal berhasil dibangun.")
+
+    # Fallback ke RAG Data Store bila bukan query agregasi / CSV gagal.
+    if not retrieved_context:
+        retrieved_context = query_data_store(search_query)
+
+    print("🤖 [2/3] Menyusun prompt evaluasi penalaran ke Nemotron...")
     ds_labels = [DATA_STORE_LABELS.get(ds, ds) for ds in DATA_STORE_IDS]
     ds_list_str = ", ".join([f"'{label}'" for label in ds_labels])
 
@@ -458,8 +730,8 @@ Pertanyaan Pengguna:
 
     messages.append({"role": "user", "content": user_turn_content})
 
-    response = deepseek_client.chat.completions.create(
-        model="deepseek-chat",
+    response = llm_client.chat.completions.create(
+        model=NVIDIA_NIM_MODEL,
         messages=messages,
         temperature=0.0,  # deterministik -> hasil evaluasi antar-run bisa dibandingkan
         stream=False

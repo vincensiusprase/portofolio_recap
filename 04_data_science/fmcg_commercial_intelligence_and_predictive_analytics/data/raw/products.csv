@@ -1,0 +1,13 @@
+product_id,sku_code,product_name,category,brand,pack_size_gram,units_per_carton,production_cost_per_unit,regular_selling_price,shelf_life_days,launch_date,discontinued_date,product_status
+P001,MTR-SC-100,Biskuit Sandwich Cokelat 100g,Biskuit Sandwich,Mentari,100,24,2400,3500,180,2019-03-01,,active
+P002,MTR-SC-40,Biskuit Sandwich Cokelat 40g,Biskuit Sandwich,Mentari,40,60,1000,1500,180,2020-07-01,,active
+P003,KNR-SV-150,Biskuit Sandwich Vanilla 150g,Biskuit Sandwich,Kinara,150,20,3600,5000,180,2022-01-15,2025-06-30,discontinued
+P004,KNR-KLP-65,Biskuit Kelapa 65g,Biskuit Kelapa,Kinara,65,36,1350,2000,150,2021-08-15,,active
+P005,KNR-KLP-200,Biskuit Kelapa Keluarga 200g,Biskuit Kelapa,Kinara,200,12,4200,6000,150,2023-05-01,,active
+P006,MRE-MRI-200,Biskuit Marie 200g,Biskuit Marie,Mereka,200,24,3000,4300,240,2018-01-01,,active
+P007,MRE-MRI-25,Biskuit Marie Mini 25g,Mini-pack,Mereka,25,96,450,700,240,2022-09-01,,active
+P008,MTR-WF-30,Wafer Cokelat 30g,Wafer,Mentari,30,60,800,1200,120,2025-01-10,,active
+P009,MTR-WF-150,Wafer Cokelat Keluarga 150g,Wafer,Mentari,150,20,4000,5800,120,2024-02-01,,active
+P010,MRE-ASS-500,Biskuit Assorted Toples 500g,Biskuit Assorted,Mereka,500,6,9500,14000,210,2020-11-01,,active
+P011,MRE-CRK-100,Crackers Keju 100g,Crackers,Mereka,100,30,2100,3200,200,2023-03-01,,active
+P012,KNR-MINI-216,Mini-pack Assorted 12x18g,Mini-pack,Kinara,216,20,2800,4000,150,2024-08-01,,active
