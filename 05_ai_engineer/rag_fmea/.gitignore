@@ -11,3 +11,7 @@
 # Virtual Environment & Cache
 venv/
 __pycache__/
+
+# Local fallback data (jangan di-commit)
+feedback_fallback.ndjson
+*.log

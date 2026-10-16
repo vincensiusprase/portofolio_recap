@@ -245,6 +245,19 @@ def run_evaluation(args):
             })
             print(f"Test #{t_id} [{category}] - Skor: {score}/5 | Correct: {is_correct} | Catatan: {reason}")
 
+            # Kirim skor evaluasi ke monitoring (metrik in-process) supaya tren kualitas
+            # bisa dipantau bersama latency/error rate.
+            try:
+                import monitoring
+                monitoring.METRICS.record_eval_score(score)
+                monitoring.log(
+                    "INFO", "skor evaluasi",
+                    request_id=f"eval-{t_id}", category=category,
+                    score=score, is_correct=is_correct, coverage=coverage,
+                )
+            except Exception:  # noqa: BLE001 - monitoring tidak boleh menggagalkan evaluasi
+                pass
+
         except (APITimeoutError, APIConnectionError) as e:
             errors.append((t_id, f"Timeout/Koneksi: {e}"))
             print(f"⚠️ Test #{t_id} mengalami Timeout/Koneksi terputus: {e}. Melanjutkan ke tes berikutnya...")

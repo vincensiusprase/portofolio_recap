@@ -2,19 +2,44 @@ import asyncio
 import os
 import sys
 import csv
+import json
+import time
 import discord
 import re
 from dotenv import load_dotenv
 import google.auth
 from google.cloud import discoveryengine_v1 as discoveryengine
 from google.cloud import firestore
-from openai import OpenAI
+from openai import (
+    OpenAI,
+    APIConnectionError,
+    APITimeoutError,
+    InternalServerError,
+    RateLimitError,
+)
+
+# --- Modul internal: monitoring, feedback, config ----------------------------
+import config
+import monitoring
+import feedback as feedback_store
+from monitoring import (
+    METRICS,
+    format_health_text,
+    format_metrics_text,
+    health_snapshot,
+    log,
+    timer,
+)
 
 # Pastikan output console Windows mendukung karakter UTF-8
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 
 load_dotenv()
+
+# Logger terstruktur (pengganti print). Level/format dari config/.env.
+setup_logging = monitoring.setup_logging
+setup_logging()
 
 PROJECT_ID = os.getenv("GCP_PROJECT_ID")
 LOCATION = os.getenv("GCP_LOCATION", "global")
@@ -26,6 +51,8 @@ ALLOWED_CHANNEL_NAME = os.getenv("ALLOWED_CHANNEL_NAME")
 ALLOWED_CHANNEL_ID = os.getenv("ALLOWED_CHANNEL_ID")
 
 MAX_HISTORY_MESSAGES = 6  # Ambil 6 pesan (3 turn) terakhir untuk menjaga batas token LLM
+FIRESTORE_TIMEOUT_SECONDS = 10
+SEARCH_TIMEOUT_SECONDS = 20
 
 # --- Pola ID & sapaan ---------------------------------------------------------
 FMEA_ID_RE = re.compile(r"FMEA-[A-Z]+-\d+", re.IGNORECASE)
@@ -195,7 +222,7 @@ def build_department_ranking_context(query: str, limit: int = 5) -> str:
     """
     dept = detect_department_in_query(query)
     if not os.path.exists(FMEA_MASTER_CSV):
-        print(f"⚠️ CSV master tidak ditemukan: {FMEA_MASTER_CSV}")
+        log("WARNING", "CSV master tidak ditemukan", path=str(FMEA_MASTER_CSV))
         return ""
 
     rows = []
@@ -221,7 +248,7 @@ def build_department_ranking_context(query: str, limit: int = 5) -> str:
                     "detection": (r.get("Detection") or "").strip(),
                 })
     except Exception as e:
-        print(f"❌ Gagal membaca CSV master: {e}")
+        log("ERROR", "gagal membaca CSV master", error=str(e))
         return ""
 
     if not rows:
@@ -272,12 +299,119 @@ if missing_nim_settings:
 # Inisialisasi Firestore DB untuk Persistent Session Memory (GCP Free Tier)
 db = firestore.Client(project=PROJECT_ID)
 
+MAX_LLM_ATTEMPTS_PER_PROVIDER = int(os.getenv("MAX_LLM_ATTEMPTS_PER_PROVIDER", "2"))
+LLM_RETRY_BACKOFF_SECONDS = float(os.getenv("LLM_RETRY_BACKOFF_SECONDS", "1.5"))
+
+# Batas waktu tiap percobaan LLM (detik). Dibuat lebih pendek supaya user tidak
+# menunggu terlalu lama saat provider sedang menggantung (overload).
+LLM_TIMEOUT_SECONDS = float(os.getenv("LLM_TIMEOUT_SECONDS", "20"))
+# Batas total seluruh upaya LLM (semua provider + retry). Bila terlampaui,
+# proses dihentikan agar bot tidak menggantung tanpa batas.
+LLM_TOTAL_BUDGET_SECONDS = float(os.getenv("LLM_TOTAL_BUDGET_SECONDS", "90"))
+
 llm_client = OpenAI(
     api_key=NVIDIA_NIM_API_KEY,
     base_url=NVIDIA_NIM_BASE_URL,
-    timeout=60.0,
-    max_retries=2,
+    timeout=LLM_TIMEOUT_SECONDS,
+    max_retries=MAX_LLM_ATTEMPTS_PER_PROVIDER,
 )
+
+# --- Fallback LLM (DeepSeek) --------------------------------------------------
+# Dipakai bila provider utama (NVIDIA NIM / Nemotron) gagal: error 5xx (mis. 503
+# "Service temporarily overloaded") atau request timeout (APITimeoutError).
+# Konfigurasi opsional di .env:
+#   DEEPSEEK_API_KEY  -> wajib untuk mengaktifkan fallback
+#   DEEPSEEK_BASE_URL -> default https://api.deepseek.com
+#   DEEPSEEK_MODEL    -> default deepseek-chat
+DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY", "").strip()
+DEEPSEEK_BASE_URL = os.getenv("DEEPSEEK_BASE_URL", "https://api.deepseek.com").strip()
+DEEPSEEK_MODEL = os.getenv("DEEPSEEK_MODEL", "deepseek-chat").strip()
+
+fallback_client = None
+if DEEPSEEK_API_KEY:
+    fallback_client = OpenAI(
+        api_key=DEEPSEEK_API_KEY,
+        base_url=DEEPSEEK_BASE_URL,
+        timeout=LLM_TIMEOUT_SECONDS,
+        max_retries=MAX_LLM_ATTEMPTS_PER_PROVIDER,
+    )
+
+# Jenis error yang layak di-retry / dialihkan ke fallback:
+# - 5xx dari server (termasuk 503 "Service temporarily overloaded")
+# - 429 rate limit
+# - APIConnectionError / APITimeoutError (jaringan / server menggantung)
+# Error 4xx lain (400/401/404) tidak di-retry karena request-nya memang salah.
+_RETRYABLE_LLM_ERRORS = (
+    RateLimitError,
+    APIConnectionError,
+    APITimeoutError,
+    InternalServerError,
+)
+
+
+def request_llm_completion(messages, temperature=0.0, request_id=None):
+    """Panggil LLM utama (Nemotron); bila gagal, ulangi lalu alihkan ke DeepSeek.
+
+    Mengembalikan (response, provider_label).
+    Melempar exception terakhir bila semua provider gagal.
+    """
+    attempts = [
+        (llm_client, NVIDIA_NIM_MODEL, "nemotron (NVIDIA NIM)"),
+    ]
+    if fallback_client is not None:
+        attempts.append((fallback_client, DEEPSEEK_MODEL, "deepseek (fallback)"))
+
+    last_exc = None
+    deadline = time.monotonic() + LLM_TOTAL_BUDGET_SECONDS
+    for client, model_name, label in attempts:
+        for attempt in range(1, MAX_LLM_ATTEMPTS_PER_PROVIDER + 1):
+            # Hormati batas waktu total: jangan mulai percobaan baru bila sisa
+            # waktu sudah tidak cukup.
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                log("WARNING", "batas waktu total LLM terlampaui, berhenti mencoba",
+                    request_id=request_id, provider=label,
+                    budget_seconds=LLM_TOTAL_BUDGET_SECONDS)
+                if last_exc is not None:
+                    raise last_exc
+                raise TimeoutError("Batas waktu total pemanggilan LLM terlampaui.")
+            try:
+                response = client.chat.completions.create(
+                    model=model_name,
+                    messages=messages,
+                    temperature=temperature,
+                    stream=False,
+                    timeout=min(LLM_TIMEOUT_SECONDS, remaining),
+                )
+                if label != "nemotron (NVIDIA NIM)":
+                    log("WARNING", "memakai LLM fallback", request_id=request_id,
+                        provider=label, model=model_name)
+                return response, label
+            except _RETRYABLE_LLM_ERRORS as exc:
+                last_exc = exc
+                log("WARNING", "panggilan LLM gagal, akan dicoba lagi",
+                    request_id=request_id, provider=label, model=model_name,
+                    attempt=attempt, max_attempts=MAX_LLM_ATTEMPTS_PER_PROVIDER,
+                    error=f"{type(exc).__name__}: {exc}")
+                if attempt < MAX_LLM_ATTEMPTS_PER_PROVIDER:
+                    backoff = LLM_RETRY_BACKOFF_SECONDS * attempt
+                    if time.monotonic() + backoff < deadline:
+                        time.sleep(backoff)
+            except Exception as exc:  # noqa: BLE001 - error non-retryable (mis. 400/401)
+                last_exc = exc
+                log("WARNING", "panggilan LLM gagal (tidak di-retry)",
+                    request_id=request_id, provider=label, model=model_name,
+                    error=f"{type(exc).__name__}: {exc}")
+                break
+
+        if fallback_client is not None and label == "nemotron (NVIDIA NIM)":
+            if time.monotonic() < deadline:
+                log("WARNING", "provider utama habis percobaan, beralih ke fallback DeepSeek",
+                    request_id=request_id)
+
+    if last_exc is not None:
+        raise last_exc
+    raise RuntimeError("Tidak ada LLM client yang tersedia.")
 
 # Inisialisasi Search Client dengan Quota Project agar tidak error 403 (CONSUMER_INVALID)
 creds, _ = google.auth.default()
@@ -285,18 +419,62 @@ if hasattr(creds, "with_quota_project") and PROJECT_ID:
     creds = creds.with_quota_project(PROJECT_ID)
 search_client = discoveryengine.SearchServiceClient(credentials=creds)
 
+# --- FEEDBACK: simpan jawaban terakhir per sesi agar bisa dirujuk saat user menekan 👍/👎
+# Cache in-process (ringan); sumber kebenaran tetap Firestore.
+_last_answers: dict = {}
+_LAST_ANSWER_TTL_SECONDS = 3600
+LAST_ANSWER_CACHE_MAX = 200
+
+
+def remember_last_answer(session_id: str, user_query: str, bot_answer: str, target_fmea_id=None):
+    """Catat jawaban bot terakhir pada sebuah sesi untuk keperluan feedback."""
+    try:
+        _last_answers[session_id] = {
+            "user_query": user_query,
+            "bot_answer": bot_answer,
+            "target_fmea_id": target_fmea_id,
+            "ts": time.time(),
+        }
+        # Buang entri kadaluarsa bila cache membesar
+        if len(_last_answers) > LAST_ANSWER_CACHE_MAX:
+            cutoff = time.time() - _LAST_ANSWER_TTL_SECONDS
+            for key in [k for k, v in _last_answers.items() if v.get("ts", 0) < cutoff]:
+                _last_answers.pop(key, None)
+    except Exception as exc:  # noqa: BLE001
+        log("WARNING", "gagal menyimpan cache jawaban terakhir", error=str(exc))
+
+
+def get_last_answer(session_id: str) -> dict:
+    """Ambil jawaban bot terakhir pada sesi (dengan fallback ke Firestore)."""
+    entry = _last_answers.get(session_id)
+    if entry and (time.time() - entry.get("ts", 0)) < _LAST_ANSWER_TTL_SECONDS:
+        return entry
+    # Fallback: baca history Firestore (turn user terakhir + jawaban assistant terakhir)
+    try:
+        history = get_session_history(session_id, limit=MAX_HISTORY_MESSAGES)
+        last_user = next((m["content"] for m in reversed(history) if m.get("role") == "user"), None)
+        last_bot = next((m["content"] for m in reversed(history) if m.get("role") == "assistant"), None)
+        return {"user_query": last_user, "bot_answer": last_bot, "target_fmea_id": None, "ts": time.time()}
+    except Exception as exc:  # noqa: BLE001
+        log("WARNING", "gagal mengambil jawaban terakhir dari Firestore", error=str(exc))
+        return {"user_query": None, "bot_answer": None, "target_fmea_id": None, "ts": time.time()}
+
 
 # --- FIRESTORE SESSION MANAGEMENT ---
 def get_session_history(session_id: str, limit: int = MAX_HISTORY_MESSAGES) -> list:
     """Mengambil riwayat percakapan dari Firestore secara terstruktur."""
     try:
         doc_ref = db.collection("bot_maintenance_sessions").document(session_id)
-        doc = doc_ref.get()
+        log("DEBUG", "membaca riwayat sesi dari Firestore", session_id=session_id)
+        doc = doc_ref.get(timeout=FIRESTORE_TIMEOUT_SECONDS)
         if doc.exists:
             messages = doc.to_dict().get("messages", [])
+            log("DEBUG", "riwayat sesi Firestore selesai dibaca", session_id=session_id,
+                messages=len(messages))
             return messages[-limit:]
+        log("DEBUG", "riwayat sesi Firestore belum ada", session_id=session_id)
     except Exception as e:
-        print(f"⚠️ Error membaca Firestore history: {e}")
+        log("WARNING", "error membaca Firestore history", session_id=session_id, error=str(e))
     return []
 
 def save_session_history(session_id: str, user_query: str, assistant_reply: str):
@@ -311,17 +489,20 @@ def save_session_history(session_id: str, user_query: str, assistant_reply: str)
         doc_ref.set({
             "messages": history[-MAX_HISTORY_MESSAGES:],
             "updated_at": firestore.SERVER_TIMESTAMP
-        }, merge=True)
+        }, merge=True, timeout=FIRESTORE_TIMEOUT_SECONDS)
+        log("DEBUG", "riwayat sesi Firestore berhasil disimpan", session_id=session_id)
     except Exception as e:
-        print(f"⚠️ Error menyimpan ke Firestore: {e}")
+        log("WARNING", "error menyimpan ke Firestore", session_id=session_id, error=str(e))
 
 def clear_session_history(session_id: str):
     """Menghapus memori percakapan pada Firestore."""
     try:
         doc_ref = db.collection("bot_maintenance_sessions").document(session_id)
-        doc_ref.delete()
+        doc_ref.delete(timeout=FIRESTORE_TIMEOUT_SECONDS)
     except Exception as e:
-        print(f"⚠️ Error menghapus Firestore session: {e}")
+        log("DEBUG", "sesi Firestore dihapus", session_id=session_id)
+    except Exception as e:
+        log("WARNING", "error menghapus Firestore session", session_id=session_id, error=str(e))
 
 
 # --- SAPAAN ---
@@ -451,14 +632,14 @@ def _search(serving_config: str, query: str, page_size: int):
             page_size=page_size,
             content_search_spec=content_spec,
         )
-        return search_client.search(request)
+        return search_client.search(request, timeout=SEARCH_TIMEOUT_SECONDS)
     except Exception:
         request = discoveryengine.SearchRequest(
             serving_config=serving_config,
             query=query,
             page_size=page_size,
         )
-        return search_client.search(request)
+        return search_client.search(request, timeout=SEARCH_TIMEOUT_SECONDS)
 
 
 def _collect_result(result, rows: list, free_texts: list, only_fmea: str = None):
@@ -488,16 +669,16 @@ def _collect_result(result, rows: list, free_texts: list, only_fmea: str = None)
 def query_data_store(user_query: str) -> str:
     # 1. Jika pertanyaan adalah sapaan/bantuan umum, lewati RAG
     if is_greeting(user_query):
-        print("ℹ️ Pertanyaan sapaan/bantuan umum terdeteksi. Melewati RAG Data Store.")
+        log("DEBUG", "pertanyaan sapaan/bantuan umum terdeteksi, melewati RAG Data Store")
         return GREETING_MARKER  # Penanda khusus untuk LLM
 
     search_keywords = extract_search_keywords(user_query)
-    print(f"🔍 [1/3] Direct Search GCP dengan keywords: '{search_keywords}' (Raw Input: '{user_query}')")
+    log("DEBUG", "direct search GCP", keywords=search_keywords, raw_input=user_query)
     all_rows, all_free_texts, all_targets = [], [], []
 
     for target_id in DATA_STORE_IDS:
         try:
-            print(f"   🔎 Searching target ID: '{target_id}'...")
+            log("DEBUG", "searching target ID", target_id=target_id)
             serving_config = _resolve_serving_config(target_id)
 
             store_rows, store_free = [], []
@@ -527,11 +708,11 @@ def query_data_store(user_query: str) -> str:
             all_targets.extend(t for t in targets if t not in all_targets)
 
         except Exception as e:
-            print(f"❌ Error Data Store ({target_id}): {e}")
+            log("ERROR", "error data store", target_id=target_id, error=str(e))
 
     combined_context = format_context(all_rows, all_free_texts, all_targets)
     n_chunks = combined_context.count("\n---\n") + 1 if combined_context else 0
-    print(f"✅ Data Store selesai. Total {n_chunks} data baris/snippet didapatkan.")
+    log("DEBUG", "data store selesai", chunks=n_chunks)
     return combined_context if combined_context else "Tidak ada data relevan yang ditemukan."
 
 
@@ -567,7 +748,7 @@ def build_search_query_with_context(user_query: str, chat_history: list) -> str:
     ref = find_last_reference(chat_history)
     if ref:
         combined_query = f"{ref} {user_query}"
-        print(f"🔄 Query Rewritten dengan Konteks: '{combined_query}'")
+        log("DEBUG", "query di-rewrite dengan konteks", combined_query=combined_query)
         return combined_query
     return user_query
 
@@ -671,80 +852,123 @@ PENANGANAN DATA KOSONG (ANTI-HALUSINASI & GUARDRAILS)
 
 
 def generate_maintenance_response(session_id: str, user_query: str) -> str:
+    request_id = monitoring.new_request_id()
     original_query = user_query
+    started = time.perf_counter()
+    error_msg = None
+    context_chars = 0
+    prompt_tokens = completion_tokens = None
+    log("INFO", "mulai memproses pertanyaan", request_id=request_id, session_id=session_id)
 
-    # 0. Koreksi typo department (misal: peking -> PACKAGING)
-    user_query = correct_department_typo(user_query)
-    if user_query != original_query:
-        print(f"📝 Typo corrected: '{original_query}' -> '{user_query}'")
+    try:
+        # 0. Koreksi typo department (misal: peking -> PACKAGING)
+        user_query = correct_department_typo(user_query)
+        if user_query != original_query:
+            log("INFO", "typo terdeteksi & dikoreksi", request_id=request_id,
+                original=original_query, corrected=user_query)
 
-    # 1. Ambil history percakapan dari Firestore
-    history = get_session_history(session_id, limit=MAX_HISTORY_MESSAGES)
+        # 1. Ambil history percakapan dari Firestore
+        with timer() as t_history:
+            history = get_session_history(session_id, limit=MAX_HISTORY_MESSAGES)
 
-    # 2. Lakukan pencarian RAG berbasis keyword yang sudah dibersihkan.
-    #    Sapaan tidak boleh di-rewrite dengan ID lama (kalau tidak, sapaan dianggap pertanyaan teknis).
-    if is_greeting(user_query):
-        search_query = user_query
-    else:
-        search_query = build_search_query_with_context(user_query, history)
+        # 2. Lakukan pencarian RAG berbasis keyword yang sudah dibersihkan.
+        #    Sapaan tidak boleh di-rewrite dengan ID lama (kalau tidak, sapaan dianggap pertanyaan teknis).
+        if is_greeting(user_query):
+            search_query = user_query
+        else:
+            search_query = build_search_query_with_context(user_query, history)
 
-    # 2b. KHUSUS query agregasi "top N RPN [di department X]":
-    #     Vertex AI Search tidak cocok untuk agregasi, jadi baca CSV master lokal.
-    retrieved_context = ""
-    if is_department_ranking_query(user_query):
-        # ambil N dari "top N RPN" bila ada, default 5
-        n_match = TOP_N_RPN_RE.search(user_query)
-        try:
-            limit = int(n_match.group(1)) if n_match and n_match.group(1) else 5
-        except (ValueError, AttributeError):
-            limit = 5
-        limit = max(1, min(limit, 20))
-        print(f"📊 Query agregasi RPN terdeteksi. Mengambil top {limit} dari CSV master lokal...")
-        retrieved_context = build_department_ranking_context(user_query, limit=limit)
-        if retrieved_context:
-            print("✅ Konteks agregasi lokal berhasil dibangun.")
+        # 2b. KHUSUS query agregasi "top N RPN [di department X]":
+        #     Vertex AI Search tidak cocok untuk agregasi, jadi baca CSV master lokal.
+        retrieved_context = ""
+        if is_department_ranking_query(user_query):
+            # ambil N dari "top N RPN" bila ada, default 5
+            n_match = TOP_N_RPN_RE.search(user_query)
+            try:
+                limit = int(n_match.group(1)) if n_match and n_match.group(1) else 5
+            except (ValueError, AttributeError):
+                limit = 5
+            limit = max(1, min(limit, 20))
+            log("INFO", "query agregasi RPN terdeteksi, membaca CSV master lokal",
+                request_id=request_id, limit=limit)
+            retrieved_context = build_department_ranking_context(user_query, limit=limit)
+            if retrieved_context:
+                log("INFO", "konteks agregasi lokal berhasil dibangun", request_id=request_id)
 
-    # Fallback ke RAG Data Store bila bukan query agregasi / CSV gagal.
-    if not retrieved_context:
-        retrieved_context = query_data_store(search_query)
+        # Fallback ke RAG Data Store bila bukan query agregasi / CSV gagal.
+        if not retrieved_context:
+            with timer() as t_search:
+                retrieved_context = query_data_store(search_query)
+            log("INFO", "pencarian data store selesai", request_id=request_id,
+                search_ms=round(t_search.ms, 2), context_chars=len(retrieved_context or ""))
+        context_chars = len(retrieved_context or "")
 
-    print("🤖 [2/3] Menyusun prompt evaluasi penalaran ke Nemotron...")
-    ds_labels = [DATA_STORE_LABELS.get(ds, ds) for ds in DATA_STORE_IDS]
-    ds_list_str = ", ".join([f"'{label}'" for label in ds_labels])
+        log("INFO", "menyusun prompt penalaran ke Nemotron", request_id=request_id)
+        ds_labels = [DATA_STORE_LABELS.get(ds, ds) for ds in DATA_STORE_IDS]
+        ds_list_str = ", ".join([f"'{label}'" for label in ds_labels])
 
-    # Pesan penolakan memakai pertanyaan ASLI pengguna, bukan versi yang sudah di-rewrite
-    system_prompt = build_system_prompt(ds_list_str, original_query)
+        # Pesan penolakan memakai pertanyaan ASLI pengguna, bukan versi yang sudah di-rewrite
+        system_prompt = build_system_prompt(ds_list_str, original_query)
 
-    messages = [{"role": "system", "content": system_prompt}]
+        messages = [{"role": "system", "content": system_prompt}]
 
-    # Sisipkan riwayat pesan dari Firestore
-    for msg in history:
-        messages.append(msg)
+        # Sisipkan riwayat pesan dari Firestore
+        for msg in history:
+            messages.append(msg)
 
-    # Sisipkan turn pengguna saat ini beserta retrieved_context
-    user_turn_content = f"""Konteks Data dari Database Maintenance:
+        # Sisipkan turn pengguna saat ini beserta retrieved_context
+        user_turn_content = f"""Konteks Data dari Database Maintenance:
 {retrieved_context}
 
 Pertanyaan Pengguna:
 {search_query}"""
 
-    messages.append({"role": "user", "content": user_turn_content})
+        messages.append({"role": "user", "content": user_turn_content})
 
-    response = llm_client.chat.completions.create(
-        model=NVIDIA_NIM_MODEL,
-        messages=messages,
-        temperature=0.0,  # deterministik -> hasil evaluasi antar-run bisa dibandingkan
-        stream=False
-    )
+        with timer() as t_llm:
+            response, used_provider = request_llm_completion(
+                messages=messages,
+                temperature=0.0,  # deterministik -> hasil evaluasi antar-run bisa dibandingkan
+                request_id=request_id,
+            )
 
-    assistant_reply = response.choices[0].message.content
+        assistant_reply = response.choices[0].message.content
 
-    # 3. Simpan percakapan secara permanen ke Firestore DB
-    #    (pertanyaan yang disimpan = versi ber-ID, supaya follow-up berantai tetap punya rujukan)
-    save_session_history(session_id, search_query, assistant_reply)
+        # Token usage (bila endpoint OpenAI-compatible mengembalikannya)
+        usage = getattr(response, "usage", None)
+        if usage is not None:
+            prompt_tokens = getattr(usage, "prompt_tokens", None)
+            completion_tokens = getattr(usage, "completion_tokens", None)
 
-    print("✅ Respon berhasil dibuat dan disimpan ke Firestore.")
-    return assistant_reply
+        log("INFO", "respons LLM diterima", request_id=request_id,
+            provider=used_provider,
+            llm_ms=round(t_llm.ms, 2), prompt_tokens=prompt_tokens,
+            completion_tokens=completion_tokens, answer_chars=len(assistant_reply or ""))
+
+        # 3. Simpan percakapan secara permanen ke Firestore DB
+        #    (pertanyaan yang disimpan = versi ber-ID, supaya follow-up berantai tetap punya rujukan)
+        save_session_history(session_id, search_query, assistant_reply)
+        remember_last_answer(session_id, search_query, assistant_reply)
+
+        log("INFO", "respon berhasil dibuat dan disimpan ke Firestore", request_id=request_id)
+        return assistant_reply
+    except Exception as exc:  # noqa: BLE001
+        error_msg = f"{type(exc).__name__}: {exc}"
+        log("ERROR", "gagal membuat respons", request_id=request_id, error=error_msg)
+        raise
+    finally:
+        latency_ms = (time.perf_counter() - started) * 1000.0
+        METRICS.record_request(
+            success=error_msg is None,
+            latency_ms=latency_ms,
+            source="bot",
+            session_id=session_id,
+            request_id=request_id,
+            prompt_tokens=prompt_tokens,
+            completion_tokens=completion_tokens,
+            context_chars=context_chars,
+            error=error_msg,
+        )
 
 
 # Discord Bot Event
@@ -752,11 +976,60 @@ intents = discord.Intents.default()
 intents.message_content = True
 client = discord.Client(intents=intents)
 
+
+# --- FEEDBACK: View tombol 👍 / 👎 -------------------------------------------
+class FeedbackView(discord.ui.View):
+    """Tombol feedback pada balasan bot. Timeout 24 jam, tetap valid setelah restart."""
+
+    def __init__(self, session_id: str, user_query: str, bot_answer: str):
+        super().__init__(timeout=86400)
+        self.session_id = session_id
+        self.user_query = (user_query or "")[:1500]
+        self.bot_answer = (bot_answer or "")[:1500]
+
+    async def _handle(self, interaction: "discord.Interaction", rating: str):
+        record = await asyncio.to_thread(
+            feedback_store.store_feedback,
+            db,
+            session_id=self.session_id,
+            rating=rating,
+            user_id=str(interaction.user.id),
+            user_query=self.user_query,
+            bot_answer=self.bot_answer,
+            source="discord_button",
+        )
+        log("INFO", "feedback diterima", rating=rating, user_id=str(interaction.user.id),
+            session_id=self.session_id)
+        emoji = "👍" if rating == "up" else "👎"
+        await interaction.response.send_message(
+            f"{emoji} Terima kasih! Feedback Anda ({rating}) sudah tercatat untuk perbaikan bot.",
+            ephemeral=True,
+        )
+
+    @discord.ui.button(label="Bantuan ini akurat", style=discord.ButtonStyle.success, emoji="👍")
+    async def thumbs_up(self, interaction: "discord.Interaction", button: "discord.ui.Button"):
+        await self._handle(interaction, "up")
+
+    @discord.ui.button(label="Kurang tepat", style=discord.ButtonStyle.danger, emoji="👎")
+    async def thumbs_down(self, interaction: "discord.Interaction", button: "discord.ui.Button"):
+        await self._handle(interaction, "down")
+
+
+async def reply_with_feedback(message, answer: str, session_id: str, user_query: str):
+    """Kirim balasan bot; lampirkan tombol feedback bila diaktifkan."""
+    if config.ENABLE_FEEDBACK_BUTTONS:
+        view = FeedbackView(session_id=session_id, user_query=user_query, bot_answer=answer)
+        await message.reply(answer, view=view)
+    else:
+        await message.reply(answer)
+
+
 @client.event
 async def on_ready():
-    print(f'✅ Bot Konsultan Maintenance (RAG Enhanced + Firestore) aktif sebagai: {client.user}')
+    log("INFO", "bot aktif", user=str(client.user))
     target_channel = ALLOWED_CHANNEL_NAME or ALLOWED_CHANNEL_ID or "Semua Channel"
-    print(f'🔒 Channel yang diizinkan: #{target_channel}')
+    log("INFO", "channel yang diizinkan", channel=target_channel)
+
 
 @client.event
 async def on_message(message):
@@ -782,7 +1055,8 @@ async def on_message(message):
 
     # Bot akan memproses jika itu DM ATAU jika di-mention di channel server yang diizinkan
     if is_dm or is_mentioned:
-        print(f"🔔 [DEBUG EVENT] Pesan diterima dari '{message.author}' via {'DM' if is_dm else 'Channel Server'}: {message.content}")
+        log("DEBUG", "pesan diterima", author=str(message.author),
+            via="DM" if is_dm else "Channel Server", preview=message.content[:120])
 
         # Untuk Firestore Session ID:
         # Jika DM, gunakan Author ID (User ID); Jika Server Channel, gunakan Channel ID.
@@ -797,21 +1071,55 @@ async def on_message(message):
             await message.reply("🧹 Memori percakapan pada sesi ini telah dibersihkan dari Firestore database.")
             return
 
+        # --- Perintah admin: /health, /metrics, /feedback-stats -------------
+        lowered = user_input.lower()
+        if config.ENABLE_ADMIN_COMMANDS and lowered in ("/health", "!health", "/status"):
+            snap = await asyncio.to_thread(health_snapshot, db)
+            await message.reply(format_health_text(snap))
+            return
+        if config.ENABLE_ADMIN_COMMANDS and lowered in ("/metrics", "!metrics", "/stats"):
+            snap = METRICS.snapshot()
+            await message.reply(format_metrics_text(snap))
+            return
+        if config.ENABLE_ADMIN_COMMANDS and lowered in ("/feedback-stats", "!feedback", "/feedback"):
+            stats = await asyncio.to_thread(feedback_store.get_feedback_stats, db)
+            await message.reply(feedback_store.format_stats_text(stats))
+            return
+
+        # --- Filter pesan mirip-feedback (hindari panggilan LLM yang tidak perlu)
+        if config.ENABLE_FEEDBACK_FILTER and feedback_store.is_feedback_like(user_input):
+            last = get_last_answer(session_id)
+            rating = "up" if re.search(r"makasih|terima\s*kasih|thanks|bagus|mantap|👍", user_input, re.I) else "down"
+            await asyncio.to_thread(
+                feedback_store.store_feedback, db,
+                session_id=session_id, rating=rating, user_id=str(message.author.id),
+                user_query=last.get("user_query"), bot_answer=last.get("bot_answer"),
+                note=user_input, source="discord_text",
+            )
+            await message.reply("📝 Catatan Anda sudah tersimpan. Terima kasih!")
+            return
+
         if not user_input:
             await message.reply("Silakan ketik pertanyaan maintenance yang ingin Anda cari.")
             return
 
         async with message.channel.typing():
             try:
+                log("INFO", "mulai membuat respons", session_id=session_id)
                 answer = await asyncio.to_thread(generate_maintenance_response, session_id, user_input)
-                await message.reply(answer)
-            except Exception as e:
-                print(f"❌ Error Handler: {e}")
-                await message.reply(f"Terjadi kesalahan internal: {e}")
+                if not answer:
+                    raise RuntimeError("Model mengembalikan respons kosong.")
+                await reply_with_feedback(message, answer, session_id, user_input)
+            except Exception as e:  # noqa: BLE001
+                log("ERROR", "error handler Discord", session_id=session_id, error=str(e))
+                await message.reply(
+                    "Maaf, layanan sedang mengalami kendala saat memproses pesan. "
+                    "Silakan coba kembali beberapa saat lagi."
+                )
 
 if __name__ == "__main__":
     token = os.getenv("DISCORD_BOT_TOKEN")
     if not token:
-        print("❌ Error: DISCORD_BOT_TOKEN belum diset di file .env")
+        log("ERROR", "DISCORD_BOT_TOKEN belum diset di file .env")
     else:
         client.run(token)

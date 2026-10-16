@@ -9,6 +9,9 @@ A Discord bot for searching and analyzing **Failure Mode and Effects Analysis (F
 - Restricts usage by Discord channel name or channel ID.
 - Stores conversation history in Firestore and provides a command to clear it.
 - Includes automated RAG evaluation with LLM-as-a-Judge scoring and confusion-matrix metrics.
+- **Monitoring**: structured logging (JSON/text) plus in-process metrics (latency p50–p99, throughput, error rate, token usage) and a health check for Firestore.
+- **Feedback system**: 👍/👎 buttons on every bot answer, stored in Firestore (`bot_maintenance_feedback`) so weak answers can drive prompt/dataset improvements.
+- **Stress testing**: concurrent load runner (`stress_test.py`) that measures latency percentiles, throughput, and error rate under parallel load, with a Locust-style ramp mode.
 
 ## High-level architecture
 
@@ -19,7 +22,9 @@ Discord User
 Discord Bot (src/backend/main.py)
     |-- Vertex AI Discovery Engine -> retrieves FMEA data
     |-- NVIDIA NIM (Nemotron)       -> generates the response
-    `-- Firestore                   -> stores session history
+    |-- Firestore                   -> stores session history
+    |-- Feedback store              -> stores 👍/👎 ratings (Firestore)
+    `-- Monitoring                  -> structured logs + latency/error metrics
 ```
 
 Important files:
@@ -27,11 +32,15 @@ Important files:
 | Path | Description |
 | --- | --- |
 | `src/backend/main.py` | Discord bot entry point and retrieval/generation logic |
+| `src/backend/config.py` | Runtime configuration shared by bot, monitoring, feedback, and stress test |
+| `src/backend/monitoring.py` | Structured logging, metrics collector, health check |
+| `src/backend/feedback.py` | Feedback storage and aggregation (Firestore + local fallback) |
+| `src/backend/stress_test.py` | Concurrent load / stress test runner |
 | `src/backend/eval_rag.py` | Automated evaluation runner |
 | `src/backend/requirement.txt` | Python dependencies |
 | `src/backend/test_dataset.json` | Evaluation test dataset |
 | `public/data/` | FMEA and corrective-step reference data |
-| `public/` | CSV and JSON evaluation outputs |
+| `public/` | CSV and JSON evaluation + stress-test outputs |
 
 ## Prerequisites
 
@@ -119,6 +128,12 @@ DATA_STORE_ID=fmea-data_1789894369425
 ALLOWED_CHANNEL_NAME=maintenance
 # ALLOWED_CHANNEL_ID=123456789012345678
 # EVAL_OUTPUT_DIR=D:\VS Code\portfolio_recap\05_ai_engineer\rag_fmea\public
+# --- Monitoring & feedback (opsional) ---
+LOG_LEVEL=INFO
+LOG_FORMAT=text
+ENABLE_FEEDBACK_BUTTONS=true
+# ENABLE_ADMIN_COMMANDS=true
+# ENABLE_FEEDBACK_FILTER=false
 "@ | Set-Content -Encoding utf8 ".\src\backend\.env"
 ```
 
@@ -137,6 +152,12 @@ Environment variables:
 | `ALLOWED_CHANNEL_NAME` | No | Only process messages in a channel with this name |
 | `ALLOWED_CHANNEL_ID` | No | Additional filter based on the channel ID |
 | `EVAL_OUTPUT_DIR` | No | Evaluation output directory |
+| `LOG_LEVEL` | No | Log level (`DEBUG`/`INFO`/`WARNING`/`ERROR`); default `INFO` |
+| `LOG_FORMAT` | No | `text` (human) or `json` (Cloud Logging friendly); default `text` |
+| `METRICS_WINDOW` | No | In-process metric ring-buffer size; default `500` |
+| `ENABLE_ADMIN_COMMANDS` | No | Expose `/health`, `/metrics`, `/feedback-stats` on Discord; default `false` |
+| `ENABLE_FEEDBACK_BUTTONS` | No | Attach 👍/👎 buttons to bot answers; default `true` |
+| `ENABLE_FEEDBACK_FILTER` | No | Skip RAG for feedback-like messages (e.g. "makasih"); default `false` |
 
 If both channel filters are empty, no channel restriction is applied. For production deployments, prefer `ALLOWED_CHANNEL_ID` because channel names may change or may not be unique.
 
@@ -176,6 +197,80 @@ The bot is connected when the console reports that it is ready. Stop the process
 - The bot processes direct messages immediately.
 - In a server, the bot processes messages when mentioned and when the channel filters match.
 - To clear the current session history, send one of: `!reset`, `!clear`, `reset`, `clear memory`, or `hapus memori`.
+- When `ENABLE_ADMIN_COMMANDS=true`, these commands are also available: `/health`, `/metrics`, and `/feedback-stats`.
+
+## Monitoring
+
+`monitoring.py` replaces `print()` with structured logging and keeps lightweight in-process metrics:
+
+- **Logging** — one line per event with `timestamp`, `level`, `service`, `request_id`, `session_id`, and any structured fields. Set `LOG_FORMAT=json` to emit Cloud Logging–friendly JSON, or `text` for readable console output.
+- **Metrics** — latency (`min`/`p50`/`p90`/`p95`/`p99`/`max`), throughput (req/s), error rate, token usage, and per-source breakdown. Stored in a ring buffer of `METRICS_WINDOW` requests.
+- **Health check** — `monitoring.health_snapshot()` pings Firestore (cached for `HEALTHCHECK_TTL_SECONDS`) and reports `ok` / `degraded` plus a metrics summary.
+
+Inspect metrics programmatically:
+
+```python
+import monitoring
+print(monitoring.METRICS.snapshot())
+print(monitoring.health_snapshot(db=None, force=True))
+```
+
+Or from Discord (when `ENABLE_ADMIN_COMMANDS=true`): `/metrics` and `/health`.
+
+## Feedback system
+
+Each bot answer can be rated with 👍 / 👎 buttons (enabled by default via `ENABLE_FEEDBACK_BUTTONS`). Ratings are stored in the Firestore collection `bot_maintenance_feedback` together with the question, the answer, the session, the user, and a UTC timestamp.
+
+- If Firestore is unavailable, feedback is appended to `feedback_fallback.ndjson` next to the backend so nothing is lost offline.
+- Aggregate stats via `/feedback-stats` (Discord) or:
+
+```python
+import feedback
+print(feedback.get_feedback_stats(db))
+```
+
+The result includes total ratings, 👍/👎 counts, satisfaction rate, and the sessions with the most negative feedback — a useful signal for prompt or dataset fixes. Review `feedback_fallback.ndjson` when operating offline.
+
+## Stress testing
+
+`stress_test.py` runs the real RAG pipeline (`generate_maintenance_response`) concurrently to measure behaviour under load. Run it from `src/backend`:
+
+```powershell
+Set-Location "d:\VS Code\portfolio_recap\05_ai_engineer\rag_fmea"
+.\.venv\Scripts\Activate.ps1
+Set-Location ".\src\backend"
+
+# 4 worker paralel, 12 request
+python .\stress_test.py --concurrency 4 --requests 12
+
+# Beban lebih besar pada satu kategori
+python .\stress_test.py -c 8 -n 56 --categories direct_master
+
+# Smoke test tanpa Firestore (lewati pre-check & reset sesi)
+python .\stress_test.py -c 2 -n 10 --no-reset --skip-precheck
+
+# Simulasi ramp bergaya Locust (8 user, spawn 2/detik, 30 detik)
+python .\stress_test.py --locust --users 8 --spawn-rate 2 --run-time 30
+```
+
+Outputs (in `public/`, or `--output-dir`):
+
+- `stress_results_<tag>.csv`: per-request detail (latency, success, error, answer preview);
+- `stress_summary_<tag>.json`: latency percentiles, throughput, error rate, per-category results.
+
+> **Cost warning:** every stress-test request calls Discovery Engine **and** the Nemotron endpoint. Start with small numbers and use `--limit` / `--categories` to bound the run. The runner performs a pre-check of Firestore and configuration and fails fast on misconfiguration.
+
+### Interpretation guide
+
+| Metric | Meaning |
+| --- | --- |
+| `latency_ms.p50` | Typical response time (half of requests are faster) |
+| `latency_ms.p95` / `p99` | Tail latency — worst-case experience under load |
+| `throughput_rps` | Completed requests per second |
+| `error_rate_pct` | Share of requests that raised an exception |
+
+A healthy run has a low, flat `p99` as concurrency rises. If `p99` grows sharply with `--concurrency`, the bottleneck is usually the upstream NIM/Discovery Engine endpoint or Firestore latency.
+
 
 ## Run the RAG evaluation
 
@@ -272,6 +367,18 @@ Make sure the virtual environment is active (the prompt should show `(.venv)`) a
 python -m pip install -r ".\src\backend\requirement.txt"
 ```
 
+### Logs are too noisy or not JSON
+
+Set `LOG_LEVEL=WARNING` to reduce verbosity, or `LOG_FORMAT=json` for structured output. Logs go to stdout; use `LOG_TO_FILE` to also write them to a file.
+
+### Feedback is not appearing in Firestore
+
+Check the Firestore write permission for `bot_maintenance_feedback`. If the write fails, feedback is stored locally in `feedback_fallback.ndjson`; inspect that file and re-run `/feedback-stats` once Firestore recovers.
+
+### Stress test fails at pre-check
+
+The pre-check verifies Firestore connectivity and that `DATA_STORE_ID` is set. Fix credentials and `DATA_STORE_ID`, or run with `--skip-precheck` to bypass Firestore verification (the test still needs Discovery Engine + NVIDIA NIM to produce meaningful results).
+
 ### A secret has been exposed
 
 Immediately revoke and regenerate the Discord bot token and DeepSeek API key, then create a new `.env` file. Never copy secrets into the README, commits, issues, or logs.
@@ -282,3 +389,13 @@ Immediately revoke and regenerate the Discord bot token and DeepSeek API key, th
 - Never add a service-account JSON file to the repository.
 - Use a secret manager or environment variables in deployment.
 - Apply least-privilege access to Firestore and Discovery Engine.
+- Do not commit `feedback_fallback.ndjson` or `*.log`; both may contain user questions and answers.
+
+## Data collected
+
+- **Firestore `bot_maintenance_sessions`** — recent conversation turns per Discord user/channel (the last `MAX_HISTORY_MESSAGES` messages).
+- **Firestore `bot_maintenance_feedback`** — 👍/👎 ratings with the related question, answer, user ID, and timestamp.
+- **Structured logs** — request IDs, session IDs, latency, error messages, and token counts. Debug-level logs may include query text and answer previews; keep `LOG_LEVEL=INFO` or higher in production and redact logs before sharing.
+- **Stress-test outputs** — `public/stress_results_*.csv` / `stress_summary_*.json` contain questions, latency, and short answer previews.
+
+Clear a user's session memory with `!reset` / `hapus memori`. Feedback entries are retained for quality improvement; delete them from Firestore if a user requests removal.
