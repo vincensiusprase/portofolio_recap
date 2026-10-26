@@ -57,11 +57,31 @@ LOW_PROJECTS = [
 
 os.makedirs("output_cvs", exist_ok=True)
 
+FIRST_NAMES = [
+    "Budi", "Siti", "Rian", "Dewi", "Agus", "Anisa", "Eko", "Maya", "Rizky", "Fitri",
+    "Andi", "Nadia", "Fajar", "Lina", "Dimas", "Putri", "Arif", "Wulan", "Yoga", "Intan"
+]
+LAST_NAMES = [
+    "Santoso", "Wijaya", "Saputra", "Lestari", "Kusuma", "Utami", "Hidayat", "Nugroho",
+    "Pratama", "Permata", "Suryanto", "Anggraini"
+]
+USED_NAMES = set()
+
 def generate_person():
-    first = random.choice(["Budi", "Siti", "Rian", "Dewi", "Agus", "Anisa", "Eko", "Maya", "Rizky", "Fitri"])
-    last = random.choice(["Santoso", "Wijaya", "Saputra", "Lestari", "Kusuma", "Utami", "Hidayat", "Nugroho"])
-    name = f"{first} {last}"
-    email = f"{first.lower()}.{last.lower()}@gmail.com"
+    # Pastikan tidak ada nama lengkap yang terpakai dua kali dalam satu batch.
+    available_names = [
+        f"{first} {last}"
+        for first in FIRST_NAMES
+        for last in LAST_NAMES
+        if f"{first} {last}" not in USED_NAMES
+    ]
+    if not available_names:
+        raise RuntimeError("Bank nama habis; tidak dapat membuat nama unik baru.")
+
+    name = random.choice(available_names)
+    USED_NAMES.add(name)
+    first, last = name.split(" ", 1)
+    email = f"{first.lower()}.{last.lower()}@example.com"
     phone = f"08{random.randint(11,99)}{random.randint(1000,9999)}"
     city = random.choice(["Jakarta", "Bandung", "Surabaya", "Yogyakarta", "Semarang", "Tangerang"])
     return name, email, phone, city

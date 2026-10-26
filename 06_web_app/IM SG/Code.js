@@ -14,7 +14,7 @@ const CONFIG = {
   SESSION_DURATION_MS: 8 * 60 * 60 * 1000,
   COMPANY_NAME: 'Super Glass',
   APP_NAME: 'Inventory Management - SG',
-  LOGO_FILE_ID: '1RTWzb8DwoAXnbV6f4EtSnk_IpiVppjeu'
+  LOGO_FILE_ID: '1hDZgHJMpDlkjgAlNAA1yTunPrt9kKSSv'
 };
 
 // --- ROLE --------------------------------------------------------------------
