@@ -54,6 +54,8 @@ function onOpen() {
     .addSeparator()
     .addItem('7. Send Offering Pass', 'sendOfferingPass') // Fungsi ini ada di Offering_Pass.js
     .addSeparator()
+    .addItem('8. Send Fail Notifications', 'sendFailNotifications') // Screening, Project Task, Interview, Offering
+    .addSeparator()
     .addToUi();
 }
 

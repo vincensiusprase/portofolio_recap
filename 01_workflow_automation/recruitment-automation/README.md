@@ -1,6 +1,6 @@
 # Recruitment Automation
 
-![Recruitment Workflow](images/flow_recruitment.jpg)
+![Recruitment Workflow](images/Architecture.png)
 
 An end-to-end recruitment automation project built with Google Apps Script, Google Sheets, Google Drive, Gmail, Google Calendar, and Python utilities.
 
@@ -35,6 +35,7 @@ All Apps Script files are located in `src/App Script/`.
 | `Mail_Merge.js` | Creates offer letters from a Google Docs template and exports them as PDF |
 | `Interview_Pass.js` | Sends offer letters to candidates who pass the interview |
 | `Offering_Pass.js` | Sends confirmation after a returned offer letter is received |
+| `Fail_Notification.js` | Sends fail notifications for Screening, Project Task, Interview, and Offering stages |
 | `appsscript.json` | Runtime, timezone, and OAuth scopes |
 | `.clasp.json` | clasp deployment configuration |
 
@@ -64,6 +65,21 @@ The automation prevents duplicate emails by checking the corresponding timestamp
 - `Project_Task_Pass.js`: project-task status is `Pass` and the send timestamp is empty.
 - `Interview_Pass.js`: Recruitment column L is `Pass` and column M is empty. The offer letter is retrieved from the Offering sheet and sent as a PDF attachment.
 - `Offering_Pass.js`: Recruitment column N is `Pass` and column O is empty. The successful send timestamp is written to column O.
+- `Fail_Notification.js`: the stage status is `Fail` and the corresponding timestamp column is empty. The timestamp is written only after the notification is sent successfully.
+
+## Email examples
+
+### Pass notification
+
+Pass emails explain the successful stage result and the next action required from the candidate.
+
+![Screening pass email example](images/Screening%20Pass.png)
+
+### Fail notification
+
+Fail emails confirm the stage where the application ends and thank the candidate for their interest.
+
+![Fail notification email example](images/Fail%20Notif.png)
 
 ## Offering Pass email
 
@@ -91,6 +107,7 @@ sendPJTaskPass()
 createOfferingLetter()
 sendInterviewPass()
 sendOfferingPass()
+sendFailNotifications()
 ```
 
 For clasp deployments:
