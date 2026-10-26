@@ -55,4 +55,25 @@ Saat menjalankan workflow manual, pilih sektor, batas ticker per sektor, dan apa
 
 ## BigQuery
 
-Data memakai `WRITE_APPEND` dan scanner memeriksa duplikasi berdasarkan `scan_date` dan `ticker` sebelum load. Kolom tabel ditetapkan oleh schema di `src/stock_scanner.py`.
+The pipeline uses `WRITE_APPEND` and checks duplicates by `scan_date` and `ticker` before loading. Table columns are defined by the schema in `src/stock_scanner.py`.
+
+## Architecture
+
+```mermaid
+flowchart LR
+    A[IDX ticker universe] --> B[Yahoo Finance]
+    B --> C[Technical indicators]
+    C --> D[BUY / SNIPER BUY filter]
+    D --> E[BigQuery]
+```
+
+## Repository Structure
+
+```text
+├── main.py                     # Scanner entry point
+├── src/stock_scanner.py        # Indicators and BigQuery schema
+├── scripts/                    # BigQuery utilities and migrations
+├── .github/workflows/          # Scheduled and manual scans
+├── .env.example                # Local configuration template
+└── README.md                   # Project documentation
+```

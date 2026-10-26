@@ -1,5 +1,7 @@
 # Recruitment Automation
 
+![Recruitment Workflow](images/flow_recruitment.jpg)
+
 An end-to-end recruitment automation project built with Google Apps Script, Google Sheets, Google Drive, Gmail, Google Calendar, and Python utilities.
 
 ## Workflow

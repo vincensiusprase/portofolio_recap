@@ -399,3 +399,14 @@ Immediately revoke and regenerate the Discord bot token and DeepSeek API key, th
 - **Stress-test outputs** — `public/stress_results_*.csv` / `stress_summary_*.json` contain questions, latency, and short answer previews.
 
 Clear a user's session memory with `!reset` / `hapus memori`. Feedback entries are retained for quality improvement; delete them from Firestore if a user requests removal.
+
+## Repository Structure
+
+```text
+├── src/backend/                # Discord bot, retrieval, generation, and evaluation
+├── public/data/                # FMEA reference datasets
+├── public/                     # Evaluation outputs and reports
+├── requirements.txt            # Python dependencies
+├── .env.example                # Environment variable template
+└── README.md                   # Project documentation
+```

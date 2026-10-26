@@ -94,4 +94,24 @@ Login default: `admin` / `admin123`
 - `.claspignore` — File yang tidak di-push ke Apps Script
 
 ## Lisensi
+
+## Architecture
+
+```mermaid
+flowchart LR
+    U[User] --> W[Google Apps Script Web App]
+    W --> S[Google Sheets data store]
+    W --> D[Dashboard and reports]
+```
+
+## Repository Structure
+
+```text
+├── Code.js                     # Backend services and web-app handlers
+├── Index.html                  # Dashboard interface
+├── SeedDummy.js                # Sample-data seeding utility
+├── appsscript.json             # Apps Script manifest
+├── .clasp.json                 # clasp configuration
+└── README.md                   # Project documentation
+```
 Internal — PT Super Glass Indonesia

@@ -101,3 +101,21 @@ I created this dashboard as a project for a challenge hosted by Zoom Charts, a l
 
 ## 🔗 Live Interactive Dashboard
 https://app.powerbi.com/view?r=eyJrIjoiNTE3MGNjYzctNmIzYS00YTYyLTk5MjItZmMxNWVhOGRhMDAwIiwidCI6IjQ2NTRiNmYxLTBlNDctNDU3OS1hOGExLTAyZmU5ZDk0M2M3YiIsImMiOjl9
+
+## Architecture & Data Flow
+
+```mermaid
+flowchart LR
+    A[HR source data] --> B[Power Query transformation]
+    B --> C[Power BI data model]
+    C --> D[DAX measures]
+    D --> E[Interactive dashboard]
+```
+
+## Repository Structure
+
+```text
+├── assets/                     # Dashboard screenshots and model visuals
+├── data/                       # Sample or source data, when included
+└── README.md                   # Project documentation
+```
